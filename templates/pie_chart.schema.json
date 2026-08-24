@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PieChartTemplate",
+  "type": "object",
+  "required": ["type", "title", "labels", "datasets"],
+  "properties": {
+    "type": { "const": "pie" },
+    "title": { "type": "string" },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "datasets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["label", "data"],
+        "properties": {
+          "label": { "type": "string" },
+          "data": {
+            "type": "array",
+            "items": { "type": "number" }
+          },
+          "backgroundColor": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "source_query": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "unit": { "type": "string" }
+      }
+    }
+  }
+}

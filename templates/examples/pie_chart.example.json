@@ -1,0 +1,17 @@
+{
+  "type": "pie",
+  "title": "สัดส่วนการเบิกจ่ายงบประมาณ ไตรมาส 4",
+  "labels": ["หน่วยงาน ก.", "หน่วยงาน ข.", "หน่วยงาน ค."],
+  "datasets": [
+    {
+      "label": "เบิกจ่ายแล้ว (บาท)",
+      "data": [450000, 320000, 180000],
+      "backgroundColor": ["#4E79A7", "#F28E2B", "#E15759"]
+    }
+  ],
+  "meta": {
+    "source_query": "SELECT dept, SUM(amount) FROM disbursement WHERE quarter=4 GROUP BY dept",
+    "generated_at": "2026-08-24T18:00:00+07:00",
+    "unit": "บาท"
+  }
+}

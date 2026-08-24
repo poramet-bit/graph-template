@@ -1,0 +1,14 @@
+{
+  "type": "line",
+  "title": "แนวโน้มการเบิกจ่ายรายเดือน",
+  "labels": ["ต.ค.", "พ.ย.", "ธ.ค.", "ม.ค."],
+  "datasets": [
+    { "label": "หน่วยงาน ก.", "data": [100000, 150000, 120000, 80000], "borderColor": "#4E79A7", "fill": false }
+  ],
+  "axis": { "x_label": "เดือน", "y_label": "บาท" },
+  "meta": {
+    "source_query": "SELECT month, SUM(amount) FROM disbursement WHERE dept='ก' GROUP BY month",
+    "generated_at": "2026-08-24T18:00:00+07:00",
+    "unit": "บาท"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "table",
+  "title": "รายละเอียดโครงการที่ใช้งบเกินแผน",
+  "columns": [
+    { "key": "project", "label": "โครงการ", "format": "text" },
+    { "key": "planned", "label": "งบตามแผน", "format": "currency" },
+    { "key": "actual", "label": "ใช้จริง", "format": "currency" },
+    { "key": "overrun_pct", "label": "เกินแผน (%)", "format": "percent" }
+  ],
+  "rows": [
+    { "project": "โครงการ A", "planned": 200000, "actual": 250000, "overrun_pct": 25 },
+    { "project": "โครงการ B", "planned": 150000, "actual": 210000, "overrun_pct": 40 }
+  ],
+  "meta": {
+    "source_query": "SELECT project, planned, actual FROM projects WHERE actual > planned",
+    "generated_at": "2026-08-24T18:00:00+07:00",
+    "row_count": 2
+  }
+}
