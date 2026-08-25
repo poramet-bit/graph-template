@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="utf-8" />
-<title>Graph model — bar + pie only</title>
+<title>Graph model — dual output flow</title>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
@@ -12,11 +12,10 @@
     --surface-1: #fcfcfb; --page: #f9f9f7;
     --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
     --gridline: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
-    --series-1: #2a78d6; /* blue   — งบประมาณต้นปี */
+    --series-1: #2a78d6; /* blue   — งบประมาณต้นปี / Output 1 accent */
     --series-2: #eb6834; /* orange — งบที่ใช้ไป */
-    --series-3: #1baf7a; /* aqua   — category slot */
-    --series-4: #eda100; /* yellow — category slot */
-    --brand: #4a3aa7;
+    --brand: #4a3aa7;    /* violet — Output 2 / subagent accent */
+    --good: #0ca30c;
   }
   @media (prefers-color-scheme: dark) {
     :root:where(:not([data-theme="light"])) {
@@ -24,8 +23,7 @@
       --surface-1: #1a1a19; --page: #0d0d0d;
       --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
       --gridline: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
-      --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
-      --brand: #9085e9;
+      --series-1: #3987e5; --series-2: #d95926; --brand: #9085e9; --good: #0ca30c;
     }
   }
   :root[data-theme="dark"] {
@@ -33,47 +31,59 @@
     --surface-1: #1a1a19; --page: #0d0d0d;
     --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
     --gridline: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
-    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
-    --brand: #9085e9;
+    --series-1: #3987e5; --series-2: #d95926; --brand: #9085e9; --good: #0ca30c;
   }
 
   * { box-sizing: border-box; }
   body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--page); color: var(--text-primary); }
-  #root { max-width: 1000px; margin: 0 auto; padding: 32px 20px 64px; }
+  #root { max-width: 1160px; margin: 0 auto; padding: 32px 20px 64px; }
 
   h1 { font-size: 18px; margin: 0 0 4px; }
-  .subtitle { font-size: 13px; color: var(--text-secondary); margin: 0 0 18px; }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin: 0 0 20px; }
 
-  .flow {
-    display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary);
-    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 22px;
+  /* 5-stage stepper, mirrors the swimlanes in the architecture diagram */
+  .stepper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-bottom: 22px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 14px 10px; }
+  .step { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; position: relative; font-size: 10.5px; color: var(--text-muted); }
+  .step::before {
+    content: ""; position: absolute; top: 8px; left: -50%; width: 100%; height: 2px; background: var(--gridline); z-index: 0;
   }
-  .flow-step { display: flex; align-items: center; gap: 6px; }
-  .flow-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gridline); flex: none; }
-  .flow-dot.done { background: var(--brand); }
-  .flow-dot.active { background: var(--series-2); animation: pulse 1s ease-in-out infinite; }
-  @keyframes pulse { 50% { opacity: 0.35; } }
-  .flow-arrow { color: var(--text-muted); }
-  .flow code { font-size: 11px; }
+  .step:first-child::before { display: none; }
+  .step.done::before, .step.active::before { background: var(--brand); }
+  .step-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--gridline); border: 2px solid var(--surface-1); z-index: 1; display: flex; align-items: center; justify-content: center; }
+  .step.done .step-dot { background: var(--brand); }
+  .step.active .step-dot { background: var(--series-2); animation: pulse 0.9s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+  .step-label { font-weight: 600; color: var(--text-secondary); }
+  .step.done .step-label, .step.active .step-label { color: var(--text-primary); }
+  .step-sub { font-size: 9.5px; }
 
-  .grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
-  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
-  .card h2 { font-size: 13.5px; margin: 0 0 3px; }
-  .card .card-sub { font-size: 11.5px; color: var(--text-muted); margin: 0 0 14px; }
-  .phase-tag { font-size: 9.5px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; color: var(--text-secondary); border: 1px solid var(--border); margin-left: 8px; }
+  .output-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; align-items: start; }
+  .panel { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .panel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+  .panel-badge { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; flex: none; }
+  .panel-title { font-size: 13.5px; font-weight: 700; }
+  .panel-sub { font-size: 11px; color: var(--text-muted); margin: 0 0 14px 28px; }
 
-  .legend { display: flex; gap: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+  .stream-box { font-size: 13px; line-height: 1.8; white-space: pre-wrap; min-height: 160px; }
+  .cursor { display: inline-block; width: 7px; height: 15px; background: var(--series-1); margin-left: 2px; vertical-align: text-bottom; animation: blink 0.9s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .pipeline-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .pipe-box { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 10.5px; color: var(--text-muted); background: var(--page); opacity: 0.45; transition: opacity 0.25s, border-color 0.25s; }
+  .pipe-box.lit { opacity: 1; border-color: var(--brand); color: var(--text-primary); }
+  .pipe-box .pipe-name { font-weight: 600; display: block; margin-bottom: 2px; }
+  .pipe-arrow-row { text-align: center; color: var(--gridline); font-size: 13px; margin: 2px 0; }
+  .pipe-arrow-row.lit { color: var(--brand); }
+  .pipe-single { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 10.5px; color: var(--text-muted); background: var(--page); opacity: 0.45; transition: opacity 0.25s, border-color 0.25s; margin-bottom: 10px; text-align: center; }
+  .pipe-single.lit { opacity: 1; border-color: var(--brand); color: var(--text-primary); font-weight: 600; }
+
+  .legend { display: flex; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-secondary); }
   .swatch { width: 9px; height: 9px; border-radius: 2px; flex: none; }
-  .swatch.round { border-radius: 50%; }
 
   .axis-label { fill: var(--text-muted); font-size: 10px; }
   .gridline-el { stroke: var(--gridline); stroke-width: 1; }
   .baseline-el { stroke: var(--baseline); stroke-width: 1; }
-
-  .donut-wrap { display: flex; flex-direction: column; align-items: center; }
-  .donut-center { font-size: 20px; font-weight: 700; }
-  .donut-center-label { font-size: 10.5px; color: var(--text-muted); }
 
   .tooltip {
     position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border);
@@ -83,7 +93,11 @@
   .tooltip .t-title { font-weight: 600; margin-bottom: 2px; }
   .tooltip .t-row { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); }
 
-  .loading { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; padding: 60px 0; justify-content: center; }
+  .summary-list { margin-top: 10px; font-size: 11.5px; color: var(--text-secondary); }
+  .summary-list div { padding: 3px 0; }
+  .summary-list b { color: var(--text-primary); }
+
+  .loading { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; padding: 30px 0; justify-content: center; }
   .spinner { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--gridline); border-top-color: var(--brand); animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
@@ -95,13 +109,20 @@
 const { useState, useEffect, useRef } = React;
 
 const TABLE_URL = "../../../templates/examples/ict_budget_2569.table.json";
-const CHART_TOP_N = 10;
+const CHART_TOP_N = 5;
 
-const CATEGORY_MAP = [
-  { prefix: "694101", label: "ภารกิจทั่วไปคณะ", color: "var(--series-1)" },
-  { prefix: "694103", label: "ทำนุบำรุงศิลปวัฒนธรรม", color: "var(--series-2)" },
-  { prefix: "694104", label: "วิจัยและพัฒนาศักยภาพ", color: "var(--series-3)" },
-  { prefix: "694105", label: "บริการวิชาการ/ชุมชน", color: "var(--series-4)" },
+const STAGES = [
+  { key: "frontend_req", label: "Frontend", sub: "ส่งคำถาม" },
+  { key: "backend", label: "Go Backend", sub: "MCP orchestrator" },
+  { key: "mcp", label: "MCP Server", sub: "คืนข้อมูล" },
+  { key: "subagent", label: "Subagent", sub: "สร้างกราฟ" },
+  { key: "result", label: "Frontend", sub: "แสดงผลคู่" },
+];
+
+const PIPELINE = [
+  { key: "s1", label: "Subagent 1", detail: "ดึงรายชื่อโครงการ (get_projects)" },
+  { key: "s2", label: "Subagent 2", detail: "สรุปงบประมาณ (get_budget_summary)" },
+  { key: "s3", label: "Subagent 3", detail: "หา Top N งบสูงสุด (get_top_projects)" },
 ];
 
 function fmtCurrency(n) { return new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(n); }
@@ -111,182 +132,214 @@ function fmtCompact(n) {
   return String(n);
 }
 
-// The data flow this file exists to show:
-//   1. fetch(table.schema.json)   -- rows straight from data_layer/mcp_server, fast
-//   2. sub agent (simulated here with setTimeout) reshapes the SAME rows into
-//      bar_chart.schema.json and pie_chart.schema.json -- never invents its own format
-//   3. this component only renders whatever template shape is in state -- no
-//      table, no KPI cards, graphs only
-function useGraphData() {
-  const [stage, setStage] = useState("fetching"); // fetching -> deriving -> ready
-  const [chart, setChart] = useState(null);
-  const [categories, setCategories] = useState(null);
+function buildSummary(tpl) {
+  const totalPlanned = tpl.rows.reduce((s, r) => s + r.planned, 0);
+  const totalActual = tpl.rows.reduce((s, r) => s + r.actual, 0);
+  const peak = [...tpl.rows].sort((a, b) => b.actual - a.actual)[0];
+  const overrun = tpl.rows
+    .filter(r => r.planned > 0 && r.actual > r.planned)
+    .map(r => ({ ...r, pct: ((r.actual - r.planned) / r.planned) * 100 }))
+    .sort((a, b) => b.pct - a.pct)[0];
 
-  useEffect(() => {
-    fetch(TABLE_URL).then(r => r.json()).then(tpl => {
-      setStage("deriving");
-      setTimeout(() => {
-        const ranked = [...tpl.rows]
-          .map(r => ({ ...r, total: r.planned + r.actual }))
-          .sort((a, b) => b.total - a.total)
-          .slice(0, CHART_TOP_N);
-        setChart({
-          type: "bar",
-          title: `งบต้นปี vs ใช้จริง — ${CHART_TOP_N} โครงการงบสูงสุด`,
-          labels: ranked.map(r => r.code),
-          datasets: [
-            { label: "งบประมาณต้นปี", data: ranked.map(r => r.planned), backgroundColor: "var(--series-1)" },
-            { label: "งบที่ใช้ไป", data: ranked.map(r => r.actual), backgroundColor: "var(--series-2)" },
-          ],
-          meta: { names: ranked.map(r => r.name) },
-        });
+  const text =
+    "จากข้อมูลที่คุณถาม สรุปได้ดังนี้:\n" +
+    `• โครงการทั้งหมด ${tpl.rows.length} โครงการ\n` +
+    `• งบประมาณต้นปีรวม ${fmtCurrency(totalPlanned)} บาท\n` +
+    `• งบที่ใช้ไปรวม ${fmtCurrency(totalActual)} บาท\n` +
+    `• โครงการที่ใช้งบสูงสุดคือ ${peak.name} (${fmtCurrency(peak.actual)} บาท)\n` +
+    (overrun ? `• โครงการที่เกินแผนมากสุดคือ ${overrun.name} (+${overrun.pct.toFixed(0)}%)` : "• ไม่มีโครงการเกินแผน");
 
-        const cats = CATEGORY_MAP.map(c => ({
-          ...c,
-          value: tpl.rows.filter(r => r.code.startsWith(c.prefix)).reduce((s, r) => s + r.actual, 0),
-        }));
-        setCategories({
-          type: "pie",
-          title: "งบที่ใช้ไปตามภารกิจ",
-          labels: cats.map(c => c.label),
-          datasets: [{ label: "งบที่ใช้ไป", data: cats.map(c => c.value), backgroundColor: cats.map(c => c.color) }],
-        });
-        setStage("ready");
-      }, 600);
-    });
-  }, []);
-
-  return { stage, chart, categories };
+  return {
+    text,
+    totalPlanned, totalActual,
+    peakName: peak.name, peakActual: peak.actual,
+    overrunName: overrun ? overrun.name : "-", overrunPct: overrun ? overrun.pct : 0,
+  };
 }
 
-function FlowStrip({ stage }) {
-  const step = s => (stage === s ? "active" : (["fetching", "deriving", "ready"].indexOf(stage) > ["fetching", "deriving", "ready"].indexOf(s) ? "done" : ""));
+function useFlow() {
+  const [stage, setStage] = useState(0); // index into STAGES, -1 = not started
+  const [tpl, setTpl] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [streamedChars, setStreamedChars] = useState(0);
+  const [pipelineStep, setPipelineStep] = useState(-1); // -1..3 (3 = aggregate+chart)
+  const [chart, setChart] = useState(null);
+
+  useEffect(() => {
+    // stage 0 -> 1: user request reaches Go backend
+    const t1 = setTimeout(() => setStage(1), 350);
+    // stage 1 -> 2: backend calls MCP server
+    const t2 = setTimeout(() => setStage(2), 800);
+    fetch(TABLE_URL).then(r => r.json()).then(rawTpl => {
+      // stage 2 -> 3: MCP server returned rows, subagent + streaming start together
+      setTimeout(() => {
+        setStage(3);
+        setTpl(rawTpl);
+        setSummary(buildSummary(rawTpl));
+      }, 1100);
+    });
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  // Output 1: character-by-character stream once summary text exists
+  useEffect(() => {
+    if (!summary) return;
+    const id = setInterval(() => {
+      setStreamedChars(c => {
+        if (c >= summary.text.length) { clearInterval(id); return c; }
+        return c + 3;
+      });
+    }, 20);
+    return () => clearInterval(id);
+  }, [summary]);
+
+  // Output 2: subagent pipeline lights up box by box, then chart, then final stage
+  useEffect(() => {
+    if (!tpl) return;
+    const timers = [0, 1, 2, 3].map(i => setTimeout(() => setPipelineStep(i), 300 + i * 350));
+    const chartTimer = setTimeout(() => {
+      const ranked = [...tpl.rows].sort((a, b) => b.actual - a.actual).slice(0, CHART_TOP_N);
+      setChart({
+        labels: ranked.map(r => r.code),
+        names: ranked.map(r => r.name),
+        data: ranked.map(r => r.actual),
+      });
+      setStage(4);
+    }, 300 + 4 * 350);
+    return () => { timers.forEach(clearTimeout); clearTimeout(chartTimer); };
+  }, [tpl]);
+
+  return { stage, summary, streamedChars, pipelineStep, chart };
+}
+
+function Stepper({ stage }) {
   return (
-    <div className="flow">
-      <div className="flow-step"><span className={"flow-dot " + step("fetching")} /><code>table.schema.json</code> fetch</div>
-      <span className="flow-arrow">→</span>
-      <div className="flow-step"><span className={"flow-dot " + step("deriving")} />sub agent derives <code>bar_chart</code> + <code>pie_chart</code></div>
-      <span className="flow-arrow">→</span>
-      <div className="flow-step"><span className={"flow-dot " + step("ready")} />render</div>
+    <div className="stepper">
+      {STAGES.map((s, i) => (
+        <div key={s.key} className={"step " + (i < stage ? "done" : i === stage ? "active" : "")}>
+          <span className="step-dot" />
+          <span className="step-label">{s.label}</span>
+          <span className="step-sub">{s.sub}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
-function BarChart({ tpl }) {
+function BarChart({ chart }) {
   const [hover, setHover] = useState(null);
   const wrapRef = useRef(null);
-  const width = 600, height = 320;
-  const marginLeft = 50, marginRight = 8, marginTop = 8, marginBottom = 36;
+  const width = 560, height = 240;
+  const marginLeft = 50, marginRight = 8, marginTop = 8, marginBottom = 34;
   const plotW = width - marginLeft - marginRight, plotH = height - marginTop - marginBottom;
-  const maxVal = Math.max(1, ...tpl.datasets.flatMap(d => d.data));
-  const niceMax = Math.ceil(maxVal / 300000) * 300000;
+  const maxVal = Math.max(1, ...chart.data);
+  const niceMax = Math.ceil(maxVal / 200000) * 200000;
   const gridSteps = 4;
-  const n = tpl.labels.length, groupW = plotW / n, seriesCount = tpl.datasets.length;
-  const groupGap = 8, barGap = 2;
-  const barW = (groupW - groupGap - barGap * (seriesCount - 1)) / seriesCount;
+  const n = chart.labels.length, groupW = plotW / n;
+  const barW = groupW * 0.55;
   const yFor = v => plotH - (v / niceMax) * plotH;
 
   return (
     <div style={{ position: "relative" }} ref={wrapRef}>
-      <div className="legend">
-        {tpl.datasets.map(d => (<div className="legend-item" key={d.label}><span className="swatch" style={{ background: d.backgroundColor }} />{d.label}</div>))}
-      </div>
-      <svg viewBox={`0 0 ${width} ${height}`} width="100%" role="img" aria-label={tpl.title}>
+      <svg viewBox={`0 0 ${width} ${height}`} width="100%">
         <g transform={`translate(${marginLeft},${marginTop})`}>
           {Array.from({ length: gridSteps + 1 }).map((_, i) => {
             const v = (niceMax / gridSteps) * i, y = yFor(v);
             return (<g key={i}><line x1={0} x2={plotW} y1={y} y2={y} className="gridline-el" /><text x={-8} y={y} textAnchor="end" dominantBaseline="middle" className="axis-label">{fmtCompact(v)}</text></g>);
           })}
           <line x1={0} x2={plotW} y1={plotH} y2={plotH} className="baseline-el" />
-          {tpl.labels.map((label, gi) => {
-            const gx = gi * groupW;
+          {chart.labels.map((label, gi) => {
+            const gx = gi * groupW + (groupW - barW) / 2;
+            const v = chart.data[gi], y = yFor(v), h = plotH - y;
+            const isHover = hover === gi;
             return (
               <g key={label}>
-                {tpl.datasets.map((d, si) => {
-                  const v = d.data[gi], y = yFor(v), h = plotH - y, x = gx + si * (barW + barGap);
-                  const isHover = hover && hover.gi === gi && hover.si === si;
-                  return (
-                    <rect key={d.label} x={x} y={y} width={barW} height={Math.max(h, 0)} rx={3}
-                      fill={d.backgroundColor} opacity={isHover ? 1 : 0.92}
-                      onMouseEnter={(e) => { const box = wrapRef.current.getBoundingClientRect(); setHover({ gi, si, x: e.clientX - box.left + 12, y: e.clientY - box.top + 12 }); }}
-                      onMouseMove={(e) => { const box = wrapRef.current.getBoundingClientRect(); setHover(h2 => h2 && { ...h2, x: e.clientX - box.left + 12, y: e.clientY - box.top + 12 }); }}
-                      onMouseLeave={() => setHover(null)} />
-                  );
-                })}
-                <text x={gx + groupW / 2 - groupGap / 2} y={plotH + 16} textAnchor="middle" className="axis-label">{label.slice(-4)}</text>
+                <rect x={gx} y={y} width={barW} height={Math.max(h, 0)} rx={3} fill="var(--brand)" opacity={isHover ? 1 : 0.88}
+                  onMouseEnter={(e) => { const box = wrapRef.current.getBoundingClientRect(); setHover(gi); }}
+                  onMouseMove={(e) => {}} onMouseLeave={() => setHover(null)} />
+                <text x={gx + barW / 2} y={plotH + 16} textAnchor="middle" className="axis-label">{label.slice(-4)}</text>
               </g>
             );
           })}
         </g>
       </svg>
-      {hover && (
-        <div className="tooltip" style={{ left: hover.x, top: hover.y }}>
-          <div className="t-title">{tpl.labels[hover.gi]} — {tpl.meta.names[hover.gi]}</div>
-          {tpl.datasets.map(d => (<div className="t-row" key={d.label}><span>{d.label}</span><span>฿{fmtCurrency(d.data[hover.gi])}</span></div>))}
+      {hover !== null && (
+        <div className="tooltip" style={{ left: 10, top: 10 }}>
+          <div className="t-title">{chart.labels[hover]} — {chart.names[hover]}</div>
+          <div className="t-row"><span>งบที่ใช้ไป</span><span>฿{fmtCurrency(chart.data[hover])}</span></div>
         </div>
       )}
     </div>
   );
 }
 
-function Donut({ tpl }) {
-  const [hover, setHover] = useState(null);
-  const data = tpl.datasets[0].data, colors = tpl.datasets[0].backgroundColor;
-  const total = data.reduce((s, v) => s + v, 0);
-  const r = 62, cx = 90, cy = 90, strokeW = 22, circ = 2 * Math.PI * r, gapPx = 3;
-
-  let cumulative = 0;
-  const segments = data.map((v, i) => {
-    const frac = total > 0 ? v / total : 0;
-    const len = Math.max(frac * circ - gapPx, 0);
-    const seg = { len, dashoffset: -cumulative * circ, color: colors[i], i };
-    cumulative += frac;
-    return seg;
-  });
-
-  return (
-    <div className="donut-wrap">
-      <svg viewBox="0 0 180 180" width="180" height="180">
-        <g transform={`rotate(-90 ${cx} ${cy})`}>
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--gridline)" strokeWidth={strokeW} />
-          {segments.map(s => (
-            <circle key={s.i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={strokeW}
-              strokeDasharray={`${s.len} ${circ - s.len}`} strokeDashoffset={s.dashoffset}
-              opacity={hover === null || hover === s.i ? 1 : 0.4}
-              onMouseEnter={() => setHover(s.i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }} />
-          ))}
-        </g>
-        <text x={cx} y={cy - 4} textAnchor="middle" className="donut-center" fill="var(--text-primary)">฿{fmtCompact(total)}</text>
-        <text x={cx} y={cy + 14} textAnchor="middle" className="donut-center-label" fill="var(--text-muted)">รวมใช้ไป</text>
-      </svg>
-      <div className="legend" style={{ justifyContent: "center" }}>
-        {tpl.labels.map((l, i) => (
-          <div className="legend-item" key={l}><span className="swatch round" style={{ background: colors[i] }} />{l} ({total > 0 ? (data[i] / total * 100).toFixed(0) : 0}%)</div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function App() {
-  const { stage, chart, categories } = useGraphData();
+  const { stage, summary, streamedChars, pipelineStep, chart } = useFlow();
+  const streamedText = summary ? summary.text.slice(0, streamedChars) : "";
+  const streamDone = summary && streamedChars >= summary.text.length;
+
   return (
     <div>
-      <h1>งบประมาณคณะ ICT ปีงบประมาณ 2569 — กราฟล้วน</h1>
-      <p className="subtitle">Graph model: ไม่มีตาราง ไม่มี KPI card เน้นดู data flow table → sub agent → bar_chart/pie_chart</p>
+      <h1>งบประมาณคณะ ICT ปีงบประมาณ 2569 — dual output flow</h1>
+      <p className="subtitle">User → Go Backend (MCP orchestrator) → MCP Server → Subagent (graph engine) → Frontend: สอง output คู่ขนาน (streaming text + subagent graph)</p>
 
-      <FlowStrip stage={stage} />
+      <Stepper stage={stage} />
 
-      <div className="grid-2">
-        <div className="card">
-          <h2>งบต้นปี vs ใช้จริง <span className="phase-tag">bar_chart.schema.json</span></h2>
-          <p className="card-sub">{CHART_TOP_N} โครงการงบสูงสุด</p>
-          {chart ? <BarChart tpl={chart} /> : <div className="loading"><span className="spinner" /> {stage === "fetching" ? "กำลังโหลดข้อมูล..." : "sub agent กำลังสร้างกราฟ..."}</div>}
+      <div className="output-grid">
+        <div className="panel">
+          <div className="panel-head">
+            <span className="panel-badge" style={{ background: "var(--series-1)" }}>1</span>
+            <span className="panel-title">MCP Prompt Output</span>
+          </div>
+          <p className="panel-sub">Streaming text — Line 1 (MCP Output Stream)</p>
+          {!summary ? (
+            <div className="loading"><span className="spinner" /> รอ MCP server ส่งข้อมูล...</div>
+          ) : (
+            <div className="stream-box">
+              {streamedText}
+              {!streamDone && <span className="cursor" />}
+            </div>
+          )}
         </div>
-        <div className="card">
-          <h2>งบตามภารกิจ <span className="phase-tag">pie_chart.schema.json</span></h2>
-          <p className="card-sub">สัดส่วนงบที่ใช้ไปจริง</p>
-          {categories ? <Donut tpl={categories} /> : <div className="loading"><span className="spinner" /> {stage === "fetching" ? "กำลังโหลดข้อมูล..." : "sub agent กำลังสร้างกราฟ..."}</div>}
+
+        <div className="panel">
+          <div className="panel-head">
+            <span className="panel-badge" style={{ background: "var(--brand)" }}>2</span>
+            <span className="panel-title">Subagent Graph View</span>
+          </div>
+          <p className="panel-sub">React graph — Line 2 (Graph View Stream), มาหลัง Output 1 เพราะรอ subagent ประมวลผล</p>
+
+          {!summary ? (
+            <div className="loading"><span className="spinner" /> รอข้อมูลจาก MCP server...</div>
+          ) : (
+            <React.Fragment>
+              <div className="pipeline-row">
+                {PIPELINE.map((p, i) => (
+                  <div key={p.key} className={"pipe-box" + (pipelineStep >= i ? " lit" : "")}>
+                    <span className="pipe-name">{p.label}</span>{p.detail}
+                  </div>
+                ))}
+              </div>
+              <div className="pipe-single" style={{ opacity: pipelineStep >= 3 ? 1 : 0.45, borderColor: pipelineStep >= 3 ? "var(--brand)" : "var(--border)" }}>
+                {pipelineStep >= 3 ? "✓ " : ""}Aggregate Results → Generate Chart Spec (bar_chart.schema.json)
+              </div>
+
+              {chart ? (
+                <React.Fragment>
+                  <div className="legend"><div className="legend-item"><span className="swatch" style={{ background: "var(--brand)" }} />งบที่ใช้ไป (Top {CHART_TOP_N})</div></div>
+                  <BarChart chart={chart} />
+                  <div className="summary-list">
+                    <div>Total Projects: <b>{summary ? summary.text.match(/(\d+) โครงการ/)[1] : ""}</b></div>
+                    <div>Total Budget (planned): <b>฿{fmtCurrency(summary.totalPlanned)}</b></div>
+                    <div>Peak Project: <b>{summary.peakName}</b> (฿{fmtCurrency(summary.peakActual)})</div>
+                    <div>Peak Overrun: <b>{summary.overrunName}</b> (+{summary.overrunPct.toFixed(0)}%)</div>
+                  </div>
+                </React.Fragment>
+              ) : (
+                <div className="loading"><span className="spinner" /> sub agent กำลังสร้างกราฟ...</div>
+              )}
+            </React.Fragment>
+          )}
         </div>
       </div>
     </div>
