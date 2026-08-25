@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>Graph models</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb; --page: #f9f9f7;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
+    --border: rgba(11,11,11,0.10); --brand: #4a3aa7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme: dark; --surface-1: #1a1a19; --page: #0d0d0d; --text-primary: #fff; --text-secondary: #c3c2b7; --text-muted: #898781; --border: rgba(255,255,255,0.10); --brand: #9085e9; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--page); color: var(--text-primary); padding: 40px 24px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 6px; }
+  p.lead { color: var(--text-secondary); font-size: 13.5px; margin: 0 0 28px; }
+  .card { display: block; text-decoration: none; color: inherit; background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; }
+  .card:hover { border-color: var(--brand); }
+  .card .tag { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--brand); }
+  .card h2 { font-size: 15px; margin: 6px 0 4px; }
+  .card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Graph models — dual output flow</h1>
+  <p class="lead">flow เดียวกันทั้ง 3 ไฟล์ (stepper 5 ขั้น + Output 1 streaming text + Output 2 subagent graph) ต่างกันแค่ชนิดกราฟใน Output 2</p>
+
+  <a class="card" href="graph.html">
+    <div class="tag">graph.html</div>
+    <h2>Bar chart</h2>
+    <p>งบต้นปี vs ใช้จริง — Top 5 โครงการงบสูงสุด (bar_chart.schema.json)</p>
+  </a>
+
+  <a class="card" href="model2.html">
+    <div class="tag">Model 2</div>
+    <h2>Pie / donut chart</h2>
+    <p>สัดส่วนงบที่ใช้ไปตามภารกิจ 4 กลุ่ม (pie_chart.schema.json)</p>
+  </a>
+
+  <a class="card" href="model3.html">
+    <div class="tag">Model 3</div>
+    <h2>Line chart</h2>
+    <p>ยอดใช้จ่ายสะสมเรียงตามรหัสโครงการ (line_chart.schema.json)</p>
+  </a>
+</div>
+</body>
+</html>

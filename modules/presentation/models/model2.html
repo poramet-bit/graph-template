@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>Model 2 — dual output flow (pie)</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb; --page: #f9f9f7;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
+    --gridline: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+    --brand: #4a3aa7; --good: #0ca30c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1: #1a1a19; --page: #0d0d0d;
+      --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+      --gridline: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+      --brand: #9085e9; --good: #0ca30c;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1: #1a1a19; --page: #0d0d0d;
+    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+    --gridline: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+    --brand: #9085e9; --good: #0ca30c;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--page); color: var(--text-primary); }
+  #root { max-width: 1160px; margin: 0 auto; padding: 32px 20px 64px; }
+
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin: 0 0 20px; }
+
+  .stepper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-bottom: 22px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 14px 10px; }
+  .step { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; position: relative; font-size: 10.5px; color: var(--text-muted); }
+  .step::before { content: ""; position: absolute; top: 8px; left: -50%; width: 100%; height: 2px; background: var(--gridline); z-index: 0; }
+  .step:first-child::before { display: none; }
+  .step.done::before, .step.active::before { background: var(--brand); }
+  .step-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--gridline); border: 2px solid var(--surface-1); z-index: 1; }
+  .step.done .step-dot { background: var(--brand); }
+  .step.active .step-dot { background: var(--series-2); animation: pulse 0.9s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+  .step-label { font-weight: 600; color: var(--text-secondary); }
+  .step.done .step-label, .step.active .step-label { color: var(--text-primary); }
+  .step-sub { font-size: 9.5px; }
+
+  .output-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; align-items: start; }
+  .panel { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .panel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+  .panel-badge { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; flex: none; }
+  .panel-title { font-size: 13.5px; font-weight: 700; }
+  .panel-sub { font-size: 11px; color: var(--text-muted); margin: 0 0 14px 28px; }
+
+  .stream-box { font-size: 13px; line-height: 1.8; white-space: pre-wrap; min-height: 160px; }
+  .cursor { display: inline-block; width: 7px; height: 15px; background: var(--series-1); margin-left: 2px; vertical-align: text-bottom; animation: blink 0.9s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .pipeline-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .pipe-box { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 10.5px; color: var(--text-muted); background: var(--page); opacity: 0.45; transition: opacity 0.25s, border-color 0.25s; }
+  .pipe-box.lit { opacity: 1; border-color: var(--brand); color: var(--text-primary); }
+  .pipe-box .pipe-name { font-weight: 600; display: block; margin-bottom: 2px; }
+  .pipe-single { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 10.5px; color: var(--text-muted); background: var(--page); opacity: 0.45; transition: opacity 0.25s, border-color 0.25s; margin-bottom: 10px; text-align: center; }
+
+  .legend { display: flex; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-secondary); }
+  .swatch { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+  .swatch.round { border-radius: 50%; }
+
+  .donut-wrap { display: flex; flex-direction: column; align-items: center; }
+  .donut-center { font-size: 20px; font-weight: 700; }
+  .donut-center-label { font-size: 10.5px; color: var(--text-muted); }
+
+  .summary-list { margin-top: 10px; font-size: 11.5px; color: var(--text-secondary); }
+  .summary-list div { padding: 3px 0; }
+  .summary-list b { color: var(--text-primary); }
+
+  .loading { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; padding: 30px 0; justify-content: center; }
+  .spinner { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--gridline); border-top-color: var(--brand); animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/plain" id="app-src">
+const { useState, useEffect } = React;
+
+const TABLE_URL = "../../../templates/examples/ict_budget_2569.table.json";
+
+const STAGES = [
+  { key: "frontend_req", label: "Frontend", sub: "ส่งคำถาม" },
+  { key: "backend", label: "Go Backend", sub: "MCP orchestrator" },
+  { key: "mcp", label: "MCP Server", sub: "คืนข้อมูล" },
+  { key: "subagent", label: "Subagent", sub: "สร้างกราฟ" },
+  { key: "result", label: "Frontend", sub: "แสดงผลคู่" },
+];
+
+const PIPELINE = [
+  { key: "s1", label: "Subagent 1", detail: "ดึงรายชื่อโครงการ (get_projects)" },
+  { key: "s2", label: "Subagent 2", detail: "สรุปงบประมาณ (get_budget_summary)" },
+  { key: "s3", label: "Subagent 3", detail: "แบ่งตามภารกิจ (get_category_breakdown)" },
+];
+
+const CATEGORY_MAP = [
+  { prefix: "694101", label: "ภารกิจทั่วไปคณะ", color: "var(--series-1)" },
+  { prefix: "694103", label: "ทำนุบำรุงศิลปวัฒนธรรม", color: "var(--series-2)" },
+  { prefix: "694104", label: "วิจัยและพัฒนาศักยภาพ", color: "var(--series-3)" },
+  { prefix: "694105", label: "บริการวิชาการ/ชุมชน", color: "var(--series-4)" },
+];
+
+function fmtCurrency(n) { return new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(n); }
+function fmtCompact(n) {
+  if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (Math.abs(n) >= 1_000) return Math.round(n / 1_000) + "k";
+  return String(n);
+}
+
+function buildSummary(tpl) {
+  const totalPlanned = tpl.rows.reduce((s, r) => s + r.planned, 0);
+  const totalActual = tpl.rows.reduce((s, r) => s + r.actual, 0);
+  const cats = CATEGORY_MAP.map(c => ({
+    ...c,
+    value: tpl.rows.filter(r => r.code.startsWith(c.prefix)).reduce((s, r) => s + r.actual, 0),
+    count: tpl.rows.filter(r => r.code.startsWith(c.prefix)).length,
+  }));
+  const top = [...cats].sort((a, b) => b.value - a.value)[0];
+
+  const text =
+    "จากข้อมูลที่คุณถาม สรุปได้ดังนี้:\n" +
+    `• โครงการทั้งหมด ${tpl.rows.length} โครงการ ใน ${cats.length} ภารกิจ\n` +
+    `• งบที่ใช้ไปรวม ${fmtCurrency(totalActual)} บาท\n` +
+    `• ภารกิจที่ใช้งบสูงสุดคือ ${top.label} (${fmtCurrency(top.value)} บาท, ${top.count} โครงการ)\n` +
+    `• คิดเป็น ${totalActual > 0 ? (top.value / totalActual * 100).toFixed(0) : 0}% ของงบที่ใช้ไปทั้งหมด`;
+
+  return { text, totalPlanned, totalActual, cats, topLabel: top.label, topValue: top.value };
+}
+
+function useFlow() {
+  const [stage, setStage] = useState(0);
+  const [tpl, setTpl] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [streamedChars, setStreamedChars] = useState(0);
+  const [pipelineStep, setPipelineStep] = useState(-1);
+  const [chart, setChart] = useState(null);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setStage(1), 350);
+    const t2 = setTimeout(() => setStage(2), 800);
+    fetch(TABLE_URL).then(r => r.json()).then(rawTpl => {
+      setTimeout(() => {
+        setStage(3);
+        setTpl(rawTpl);
+        setSummary(buildSummary(rawTpl));
+      }, 1100);
+    });
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  useEffect(() => {
+    if (!summary) return;
+    const id = setInterval(() => {
+      setStreamedChars(c => {
+        if (c >= summary.text.length) { clearInterval(id); return c; }
+        return c + 3;
+      });
+    }, 20);
+    return () => clearInterval(id);
+  }, [summary]);
+
+  useEffect(() => {
+    if (!tpl) return;
+    const timers = [0, 1, 2, 3].map(i => setTimeout(() => setPipelineStep(i), 300 + i * 350));
+    const chartTimer = setTimeout(() => {
+      const cats = CATEGORY_MAP.map(c => ({
+        label: c.label,
+        color: c.color,
+        value: tpl.rows.filter(r => r.code.startsWith(c.prefix)).reduce((s, r) => s + r.actual, 0),
+      }));
+      setChart(cats);
+      setStage(4);
+    }, 300 + 4 * 350);
+    return () => { timers.forEach(clearTimeout); clearTimeout(chartTimer); };
+  }, [tpl]);
+
+  return { stage, summary, streamedChars, pipelineStep, chart };
+}
+
+function Stepper({ stage }) {
+  return (
+    <div className="stepper">
+      {STAGES.map((s, i) => (
+        <div key={s.key} className={"step " + (i < stage ? "done" : i === stage ? "active" : "")}>
+          <span className="step-dot" />
+          <span className="step-label">{s.label}</span>
+          <span className="step-sub">{s.sub}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Donut({ chart }) {
+  const [hover, setHover] = useState(null);
+  const total = chart.reduce((s, c) => s + c.value, 0);
+  const r = 62, cx = 90, cy = 90, strokeW = 22, circ = 2 * Math.PI * r, gapPx = 3;
+
+  let cumulative = 0;
+  const segments = chart.map((c, i) => {
+    const frac = total > 0 ? c.value / total : 0;
+    const len = Math.max(frac * circ - gapPx, 0);
+    const seg = { len, dashoffset: -cumulative * circ, color: c.color, i };
+    cumulative += frac;
+    return seg;
+  });
+
+  return (
+    <div className="donut-wrap">
+      <svg viewBox="0 0 180 180" width="180" height="180">
+        <g transform={`rotate(-90 ${cx} ${cy})`}>
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--gridline)" strokeWidth={strokeW} />
+          {segments.map(s => (
+            <circle key={s.i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={strokeW}
+              strokeDasharray={`${s.len} ${circ - s.len}`} strokeDashoffset={s.dashoffset}
+              opacity={hover === null || hover === s.i ? 1 : 0.4}
+              onMouseEnter={() => setHover(s.i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }} />
+          ))}
+        </g>
+        <text x={cx} y={cy - 4} textAnchor="middle" className="donut-center" fill="var(--text-primary)">฿{fmtCompact(total)}</text>
+        <text x={cx} y={cy + 14} textAnchor="middle" className="donut-center-label" fill="var(--text-muted)">รวมใช้ไป</text>
+      </svg>
+      <div className="legend">
+        {chart.map((c, i) => (
+          <div className="legend-item" key={c.label}><span className="swatch round" style={{ background: c.color }} />{c.label} ({total > 0 ? (c.value / total * 100).toFixed(0) : 0}%)</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const { stage, summary, streamedChars, pipelineStep, chart } = useFlow();
+  const streamedText = summary ? summary.text.slice(0, streamedChars) : "";
+  const streamDone = summary && streamedChars >= summary.text.length;
+
+  return (
+    <div>
+      <h1>งบประมาณคณะ ICT ปีงบประมาณ 2569 — dual output flow (pie)</h1>
+      <p className="subtitle">Model 2 — เหมือน graph.html ทุกจุด ต่างแค่ Output 2 เป็น pie_chart แทน bar_chart</p>
+
+      <Stepper stage={stage} />
+
+      <div className="output-grid">
+        <div className="panel">
+          <div className="panel-head"><span className="panel-badge" style={{ background: "var(--series-1)" }}>1</span><span className="panel-title">MCP Prompt Output</span></div>
+          <p className="panel-sub">Streaming text — Line 1</p>
+          {!summary ? (
+            <div className="loading"><span className="spinner" /> รอ MCP server ส่งข้อมูล...</div>
+          ) : (
+            <div className="stream-box">{streamedText}{!streamDone && <span className="cursor" />}</div>
+          )}
+        </div>
+
+        <div className="panel">
+          <div className="panel-head"><span className="panel-badge" style={{ background: "var(--brand)" }}>2</span><span className="panel-title">Subagent Graph View</span></div>
+          <p className="panel-sub">React graph — Line 2, มาหลัง Output 1</p>
+
+          {!summary ? (
+            <div className="loading"><span className="spinner" /> รอข้อมูลจาก MCP server...</div>
+          ) : (
+            <React.Fragment>
+              <div className="pipeline-row">
+                {PIPELINE.map((p, i) => (
+                  <div key={p.key} className={"pipe-box" + (pipelineStep >= i ? " lit" : "")}><span className="pipe-name">{p.label}</span>{p.detail}</div>
+                ))}
+              </div>
+              <div className="pipe-single" style={{ opacity: pipelineStep >= 3 ? 1 : 0.45, borderColor: pipelineStep >= 3 ? "var(--brand)" : "var(--border)" }}>
+                {pipelineStep >= 3 ? "✓ " : ""}Aggregate Results → Generate Chart Spec (pie_chart.schema.json)
+              </div>
+
+              {chart ? (
+                <React.Fragment>
+                  <Donut chart={chart} />
+                  <div className="summary-list">
+                    <div>Total Budget (used): <b>฿{fmtCurrency(summary.totalActual)}</b></div>
+                    <div>Top Category: <b>{summary.topLabel}</b> (฿{fmtCurrency(summary.topValue)})</div>
+                  </div>
+                </React.Fragment>
+              ) : (
+                <div className="loading"><span className="spinner" /> sub agent กำลังสร้างกราฟ...</div>
+              )}
+            </React.Fragment>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+<script>
+  const src = document.getElementById("app-src").textContent;
+  const { code } = Babel.transform(src, { presets: [["react", { runtime: "classic" }]] });
+  (0, eval)(code);
+</script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>Model 3 — dual output flow (line)</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb; --page: #f9f9f7;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
+    --gridline: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6; --brand: #4a3aa7; --good: #0ca30c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1: #1a1a19; --page: #0d0d0d;
+      --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+      --gridline: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5; --brand: #9085e9; --good: #0ca30c;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1: #1a1a19; --page: #0d0d0d;
+    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+    --gridline: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5; --brand: #9085e9; --good: #0ca30c;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--page); color: var(--text-primary); }
+  #root { max-width: 1160px; margin: 0 auto; padding: 32px 20px 64px; }
+
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin: 0 0 20px; }
+
+  .stepper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-bottom: 22px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 14px 10px; }
+  .step { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; position: relative; font-size: 10.5px; color: var(--text-muted); }
+  .step::before { content: ""; position: absolute; top: 8px; left: -50%; width: 100%; height: 2px; background: var(--gridline); z-index: 0; }
+  .step:first-child::before { display: none; }
+  .step.done::before, .step.active::before { background: var(--brand); }
+  .step-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--gridline); border: 2px solid var(--surface-1); z-index: 1; }
+  .step.done .step-dot { background: var(--brand); }
+  .step.active .step-dot { background: #eb6834; animation: pulse 0.9s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+  .step-label { font-weight: 600; color: var(--text-secondary); }
+  .step.done .step-label, .step.active .step-label { color: var(--text-primary); }
+  .step-sub { font-size: 9.5px; }
+
+  .output-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; align-items: start; }
+  .panel { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .panel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+  .panel-badge { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; flex: none; }
+  .panel-title { font-size: 13.5px; font-weight: 700; }
+  .panel-sub { font-size: 11px; color: var(--text-muted); margin: 0 0 14px 28px; }
+
+  .stream-box { font-size: 13px; line-height: 1.8; white-space: pre-wrap; min-height: 160px; }
+  .cursor { display: inline-block; width: 7px; height: 15px; background: var(--series-1); margin-left: 2px; vertical-align: text-bottom; animation: blink 0.9s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .pipeline-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .pipe-box { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 10.5px; color: var(--text-muted); background: var(--page); opacity: 0.45; transition: opacity 0.25s, border-color 0.25s; }
+  .pipe-box.lit { opacity: 1; border-color: var(--brand); color: var(--text-primary); }
+  .pipe-box .pipe-name { font-weight: 600; display: block; margin-bottom: 2px; }
+  .pipe-single { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 10.5px; color: var(--text-muted); background: var(--page); opacity: 0.45; transition: opacity 0.25s, border-color 0.25s; margin-bottom: 10px; text-align: center; }
+
+  .legend { display: flex; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-secondary); }
+  .swatch { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+
+  .axis-label { fill: var(--text-muted); font-size: 10px; }
+  .gridline-el { stroke: var(--gridline); stroke-width: 1; }
+  .baseline-el { stroke: var(--baseline); stroke-width: 1; }
+
+  .tooltip {
+    position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    max-width: 240px; line-height: 1.5; z-index: 10;
+  }
+  .tooltip .t-title { font-weight: 600; margin-bottom: 2px; }
+  .tooltip .t-row { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); }
+
+  .summary-list { margin-top: 10px; font-size: 11.5px; color: var(--text-secondary); }
+  .summary-list div { padding: 3px 0; }
+  .summary-list b { color: var(--text-primary); }
+
+  .loading { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; padding: 30px 0; justify-content: center; }
+  .spinner { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--gridline); border-top-color: var(--brand); animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/plain" id="app-src">
+const { useState, useEffect, useRef } = React;
+
+const TABLE_URL = "../../../templates/examples/ict_budget_2569.table.json";
+
+const STAGES = [
+  { key: "frontend_req", label: "Frontend", sub: "ส่งคำถาม" },
+  { key: "backend", label: "Go Backend", sub: "MCP orchestrator" },
+  { key: "mcp", label: "MCP Server", sub: "คืนข้อมูล" },
+  { key: "subagent", label: "Subagent", sub: "สร้างกราฟ" },
+  { key: "result", label: "Frontend", sub: "แสดงผลคู่" },
+];
+
+const PIPELINE = [
+  { key: "s1", label: "Subagent 1", detail: "ดึงรายชื่อโครงการ (get_projects)" },
+  { key: "s2", label: "Subagent 2", detail: "เรียงตามรหัสโครงการ (sort_by_code)" },
+  { key: "s3", label: "Subagent 3", detail: "สะสมยอดใช้จ่าย (get_cumulative_trend)" },
+];
+
+function fmtCurrency(n) { return new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(n); }
+function fmtCompact(n) {
+  if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (Math.abs(n) >= 1_000) return Math.round(n / 1_000) + "k";
+  return String(n);
+}
+
+function buildSummary(tpl) {
+  const sorted = [...tpl.rows].sort((a, b) => a.code.localeCompare(b.code));
+  const totalActual = sorted.reduce((s, r) => s + r.actual, 0);
+  let running = 0;
+  const halfway = totalActual / 2;
+  let midCode = sorted[sorted.length - 1].code;
+  for (const r of sorted) { running += r.actual; if (running >= halfway) { midCode = r.code; break; } }
+
+  const text =
+    "จากข้อมูลที่คุณถาม สรุปได้ดังนี้:\n" +
+    `• โครงการทั้งหมด ${sorted.length} โครงการ เรียงตามรหัส\n` +
+    `• งบที่ใช้ไปสะสมรวม ${fmtCurrency(totalActual)} บาท\n` +
+    `• ใช้ไปครึ่งหนึ่งของงบรวมเมื่อถึงโครงการรหัส ${midCode}\n` +
+    `• แนวโน้มสะสมไม่เชิงเส้น มีโครงการงบก้อนใหญ่ไม่กี่ตัวดันยอดขึ้นเร็ว`;
+
+  return { text, totalActual, midCode };
+}
+
+function useFlow() {
+  const [stage, setStage] = useState(0);
+  const [tpl, setTpl] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [streamedChars, setStreamedChars] = useState(0);
+  const [pipelineStep, setPipelineStep] = useState(-1);
+  const [chart, setChart] = useState(null);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setStage(1), 350);
+    const t2 = setTimeout(() => setStage(2), 800);
+    fetch(TABLE_URL).then(r => r.json()).then(rawTpl => {
+      setTimeout(() => {
+        setStage(3);
+        setTpl(rawTpl);
+        setSummary(buildSummary(rawTpl));
+      }, 1100);
+    });
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  useEffect(() => {
+    if (!summary) return;
+    const id = setInterval(() => {
+      setStreamedChars(c => {
+        if (c >= summary.text.length) { clearInterval(id); return c; }
+        return c + 3;
+      });
+    }, 20);
+    return () => clearInterval(id);
+  }, [summary]);
+
+  useEffect(() => {
+    if (!tpl) return;
+    const timers = [0, 1, 2, 3].map(i => setTimeout(() => setPipelineStep(i), 300 + i * 350));
+    const chartTimer = setTimeout(() => {
+      const sorted = [...tpl.rows].sort((a, b) => a.code.localeCompare(b.code));
+      let running = 0;
+      const points = sorted.map(r => { running += r.actual; return { code: r.code, name: r.name, cumulative: running }; });
+      setChart(points);
+      setStage(4);
+    }, 300 + 4 * 350);
+    return () => { timers.forEach(clearTimeout); clearTimeout(chartTimer); };
+  }, [tpl]);
+
+  return { stage, summary, streamedChars, pipelineStep, chart };
+}
+
+function Stepper({ stage }) {
+  return (
+    <div className="stepper">
+      {STAGES.map((s, i) => (
+        <div key={s.key} className={"step " + (i < stage ? "done" : i === stage ? "active" : "")}>
+          <span className="step-dot" />
+          <span className="step-label">{s.label}</span>
+          <span className="step-sub">{s.sub}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LineChart({ points }) {
+  const [hover, setHover] = useState(null);
+  const wrapRef = useRef(null);
+  const width = 620, height = 260;
+  const marginLeft = 54, marginRight = 10, marginTop = 10, marginBottom = 30;
+  const plotW = width - marginLeft - marginRight, plotH = height - marginTop - marginBottom;
+  const maxVal = Math.max(1, ...points.map(p => p.cumulative));
+  const niceMax = Math.ceil(maxVal / 500000) * 500000;
+  const gridSteps = 4;
+  const n = points.length;
+  const xFor = i => (n <= 1 ? 0 : (i / (n - 1)) * plotW);
+  const yFor = v => plotH - (v / niceMax) * plotH;
+
+  const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${xFor(i)},${yFor(p.cumulative)}`).join(" ");
+  const areaPath = path + ` L${xFor(n - 1)},${plotH} L0,${plotH} Z`;
+
+  return (
+    <div style={{ position: "relative" }} ref={wrapRef}>
+      <svg viewBox={`0 0 ${width} ${height}`} width="100%">
+        <g transform={`translate(${marginLeft},${marginTop})`}>
+          {Array.from({ length: gridSteps + 1 }).map((_, i) => {
+            const v = (niceMax / gridSteps) * i, y = yFor(v);
+            return (<g key={i}><line x1={0} x2={plotW} y1={y} y2={y} className="gridline-el" /><text x={-8} y={y} textAnchor="end" dominantBaseline="middle" className="axis-label">{fmtCompact(v)}</text></g>);
+          })}
+          <line x1={0} x2={plotW} y1={plotH} y2={plotH} className="baseline-el" />
+          <path d={areaPath} fill="var(--series-1)" opacity={0.12} />
+          <path d={path} fill="none" stroke="var(--series-1)" strokeWidth={2} />
+          {points.map((p, i) => (
+            <circle key={p.code} cx={xFor(i)} cy={yFor(p.cumulative)} r={hover === i ? 4 : 2.5}
+              fill="var(--series-1)" onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }} />
+          ))}
+          {points.map((p, i) => (
+            i % Math.ceil(n / 8) === 0 && <text key={p.code} x={xFor(i)} y={plotH + 14} textAnchor="middle" className="axis-label">{p.code.slice(-4)}</text>
+          ))}
+        </g>
+      </svg>
+      {hover !== null && (
+        <div className="tooltip" style={{ left: marginLeft + xFor(hover) - 60, top: 8 }}>
+          <div className="t-title">{points[hover].code} — {points[hover].name}</div>
+          <div className="t-row"><span>สะสม</span><span>฿{fmtCurrency(points[hover].cumulative)}</span></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  const { stage, summary, streamedChars, pipelineStep, chart } = useFlow();
+  const streamedText = summary ? summary.text.slice(0, streamedChars) : "";
+  const streamDone = summary && streamedChars >= summary.text.length;
+
+  return (
+    <div>
+      <h1>งบประมาณคณะ ICT ปีงบประมาณ 2569 — dual output flow (line)</h1>
+      <p className="subtitle">Model 3 — เหมือน graph.html ทุกจุด ต่างแค่ Output 2 เป็น line_chart (ยอดสะสม) แทน bar_chart</p>
+
+      <Stepper stage={stage} />
+
+      <div className="output-grid">
+        <div className="panel">
+          <div className="panel-head"><span className="panel-badge" style={{ background: "var(--series-1)" }}>1</span><span className="panel-title">MCP Prompt Output</span></div>
+          <p className="panel-sub">Streaming text — Line 1</p>
+          {!summary ? (
+            <div className="loading"><span className="spinner" /> รอ MCP server ส่งข้อมูล...</div>
+          ) : (
+            <div className="stream-box">{streamedText}{!streamDone && <span className="cursor" />}</div>
+          )}
+        </div>
+
+        <div className="panel">
+          <div className="panel-head"><span className="panel-badge" style={{ background: "var(--brand)" }}>2</span><span className="panel-title">Subagent Graph View</span></div>
+          <p className="panel-sub">React graph — Line 2, มาหลัง Output 1</p>
+
+          {!summary ? (
+            <div className="loading"><span className="spinner" /> รอข้อมูลจาก MCP server...</div>
+          ) : (
+            <React.Fragment>
+              <div className="pipeline-row">
+                {PIPELINE.map((p, i) => (
+                  <div key={p.key} className={"pipe-box" + (pipelineStep >= i ? " lit" : "")}><span className="pipe-name">{p.label}</span>{p.detail}</div>
+                ))}
+              </div>
+              <div className="pipe-single" style={{ opacity: pipelineStep >= 3 ? 1 : 0.45, borderColor: pipelineStep >= 3 ? "var(--brand)" : "var(--border)" }}>
+                {pipelineStep >= 3 ? "✓ " : ""}Aggregate Results → Generate Chart Spec (line_chart.schema.json)
+              </div>
+
+              {chart ? (
+                <React.Fragment>
+                  <div className="legend"><div className="legend-item"><span className="swatch" style={{ background: "var(--series-1)" }} />งบที่ใช้ไปสะสม (เรียงตามรหัสโครงการ)</div></div>
+                  <LineChart points={chart} />
+                  <div className="summary-list">
+                    <div>Total Cumulative: <b>฿{fmtCurrency(summary.totalActual)}</b></div>
+                    <div>Halfway Point: <b>{summary.midCode}</b></div>
+                  </div>
+                </React.Fragment>
+              ) : (
+                <div className="loading"><span className="spinner" /> sub agent กำลังสร้างกราฟ...</div>
+              )}
+            </React.Fragment>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+<script>
+  const src = document.getElementById("app-src").textContent;
+  const { code } = Babel.transform(src, { presets: [["react", { runtime: "classic" }]] });
+  (0, eval)(code);
+</script>
+</body>
+</html>
