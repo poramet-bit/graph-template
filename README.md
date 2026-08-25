@@ -46,8 +46,8 @@ above into five stages and two outputs the frontend receives in parallel:
 Why split it this way: the main agent only reasons and answers in text (fast,
 no chart-building latency on that path); the subagent handles visualization
 independently and can be scaled out per chart type without touching the main
-agent. `modules/presentation/models/graph.html` mocks exactly this two-stream
-timing.
+agent. `modules/presentation/models/flow-bar.html` mocks exactly this
+two-stream timing.
 
 ## Layout
 
@@ -60,8 +60,8 @@ timing.
 - `modules/ai_layer/` — NL question -> query -> template fill (not yet implemented).
 - `modules/presentation/` — renders template JSON to an actual chart. Real
   renderer not yet implemented, but `modules/presentation/models/` has
-  working front-end mockups (bar/pie/line chart variants of the dual-output
-  flow) — see `modules/presentation/README.md`.
+  working front-end mockups (the dual-output flow in bar/pie/line variants,
+  plus a dark admin-UI clone) — see `modules/presentation/README.md`.
 - `modules/security/` — access control (not yet implemented).
 
 Each module is independent — build and test in isolation, wire into
