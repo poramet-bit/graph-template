@@ -23,6 +23,11 @@ for the JSON shape each renderer must accept.
   - `model3.html` — line chart (cumulative spend by project code, `line_chart.schema.json`)
 
   Data from `templates/examples/ict_budget_2569.table.json`.
+- `models/nexora.html` — dark admin-panel visual clone (sidebar, KPI icon
+  cards, filterable table, right detail panel with tabs) matching the
+  reference Nexora Control Center screenshots, wired to the same real
+  project data. Row click opens the detail panel; status/search filters
+  are functional.
 
 All are plain React via CDN (no build step) — open through a local server
 (e.g. `python3 -m http.server` from the repo root), not `file://`, since they

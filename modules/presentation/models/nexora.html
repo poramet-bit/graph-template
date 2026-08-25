@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>ICT Budget Control Center</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --sidebar: #111113;
+    --surface: #131316;
+    --surface-2: #1a1a1e;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --accent: #6c5dd3;
+    --accent-soft: rgba(108,93,211,0.16);
+    --accent-hover: #7c6ee0;
+    --good: #22c55e; --good-soft: rgba(34,197,94,0.14);
+    --warning: #f59e0b; --warning-soft: rgba(245,158,11,0.14);
+    --critical: #ef4444; --critical-soft: rgba(239,68,68,0.14);
+    --info: #2a9d9d; --info-soft: rgba(42,157,157,0.14);
+    --blue: #3b82f6; --blue-soft: rgba(59,130,246,0.14);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text-primary); font-size: 13px; }
+  ::selection { background: var(--accent-soft); }
+
+  .shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* ---- sidebar ---- */
+  .sidebar { background: var(--sidebar); border-right: 1px solid var(--border); padding: 18px 14px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 9px; padding: 4px 4px 22px; }
+  .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #4638a0); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 13px; flex: none; }
+  .brand-name { font-weight: 700; font-size: 13.5px; line-height: 1.3; }
+  .brand-sub { font-size: 9px; color: var(--text-muted); letter-spacing: 0.06em; }
+
+  .nav-group { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 10px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; color: var(--text-secondary); font-size: 12.5px; margin-bottom: 1px; position: relative; }
+  .nav-item .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.5; flex: none; }
+  .nav-item.active { background: var(--accent-soft); color: #fff; font-weight: 600; }
+  .nav-item.active::before { content: ""; position: absolute; left: -14px; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--accent); }
+
+  .sidebar-footer { margin-top: auto; }
+  .promo-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .promo-icon { font-size: 15px; margin-bottom: 6px; }
+  .promo-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .promo-body { font-size: 10.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+  .promo-btn { width: 100%; padding: 7px; border-radius: 7px; border: 1px solid var(--border-strong); background: var(--surface-2); color: var(--text-secondary); font-size: 11px; font-weight: 600; text-align: center; cursor: default; }
+
+  /* ---- topbar ---- */
+  .main { padding: 18px 26px 50px; }
+  .topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
+  .search-wrap { flex: 1; max-width: 420px; position: relative; }
+  .search-wrap input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 9px 46px 9px 34px; color: var(--text-primary); font-size: 12.5px; }
+  .search-wrap input::placeholder { color: var(--text-muted); }
+  .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 12px; }
+  .kbd-hint { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--text-muted); border: 1px solid var(--border-strong); border-radius: 4px; padding: 1px 5px; }
+  .topbar-spacer { flex: 1; }
+  .icon-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 13px; position: relative; flex: none; }
+  .icon-btn .badge-dot { position: absolute; top: 5px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--critical); border: 1.5px solid var(--surface); }
+  .avatar-wrap { display: flex; align-items: center; gap: 8px; padding-left: 8px; border-left: 1px solid var(--border); margin-left: 4px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex: none; }
+  .avatar-name { font-size: 12px; font-weight: 600; line-height: 1.3; }
+  .avatar-role { font-size: 10px; color: var(--text-muted); }
+
+  /* ---- page header ---- */
+  .page-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 16px; }
+  .page-title-row { display: flex; align-items: center; gap: 8px; }
+  h1 { font-size: 19px; margin: 0; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px var(--good-soft); }
+  .page-sub { font-size: 12.5px; color: var(--text-secondary); margin: 4px 0 0; }
+  .head-actions { display: flex; gap: 8px; flex: none; }
+  .btn { font-size: 12px; font-weight: 600; padding: 8px 13px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-secondary); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ---- KPI row ---- */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 15px; }
+  .kpi-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .kpi-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex: none; }
+  .kpi-label { font-size: 11px; color: var(--text-muted); }
+  .kpi-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .kpi-trend { font-size: 10.5px; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+  .kpi-trend.good { color: var(--good); }
+  .kpi-trend.bad { color: var(--critical); }
+  .kpi-trend-muted { color: var(--text-muted); font-weight: 400; }
+
+  /* ---- filters ---- */
+  .filter-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .filter-row .search-wrap { max-width: 280px; }
+  .dd-btn { font-size: 11.5px; color: var(--text-secondary); background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 7px 11px; display: flex; align-items: center; gap: 5px; }
+  .dd-btn .chev { font-size: 9px; color: var(--text-muted); }
+  .filter-spacer { flex: 1; }
+  .link-btn { font-size: 11.5px; color: var(--text-muted); text-decoration: underline; cursor: default; }
+
+  .pill-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .active-pill { font-size: 11px; color: var(--text-secondary); background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; padding: 5px 9px; display: flex; align-items: center; gap: 6px; }
+  .active-pill .x { color: var(--text-muted); cursor: pointer; }
+
+  /* ---- table ---- */
+  .content-grid { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); font-weight: 500; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  thead th.num { text-align: right; }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 12.5px; white-space: nowrap; }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr { cursor: pointer; position: relative; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody tr.selected { background: var(--accent-soft); }
+  tbody tr.selected::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+  .proj-name { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+  .proj-code { color: var(--text-muted); font-size: 10.5px; }
+
+  .badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 99px; display: inline-block; white-space: nowrap; }
+  .badge.good { color: var(--good); background: var(--good-soft); }
+  .badge.warning { color: var(--warning); background: var(--warning-soft); }
+  .badge.critical { color: var(--critical); background: var(--critical-soft); }
+  .badge.info { color: var(--info); background: var(--info-soft); }
+  .badge.neutral { color: var(--text-secondary); background: var(--surface-2); border: 1px solid var(--border); }
+
+  .table-footer { padding: 10px 14px; font-size: 11px; color: var(--text-muted); }
+
+  /* ---- detail panel ---- */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 18px; position: sticky; top: 18px; }
+  .panel-empty { text-align: center; padding: 50px 10px; color: var(--text-muted); font-size: 12px; }
+  .panel-empty .big-icon { font-size: 26px; margin-bottom: 10px; opacity: 0.5; }
+
+  .panel-head-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
+  .panel-close { border: none; background: none; color: var(--text-muted); font-size: 16px; cursor: default; }
+  .panel-title { font-size: 14.5px; font-weight: 700; line-height: 1.4; margin: 8px 0 3px; }
+  .panel-meta { font-size: 10.5px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+  .tab { font-size: 11px; padding: 7px 4px; color: var(--text-muted); border-bottom: 2px solid transparent; margin-right: 12px; }
+  .tab.active { color: var(--text-primary); border-color: var(--accent); font-weight: 600; }
+
+  .section-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin: 0 0 6px; }
+  .narrative { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+
+  .kv { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; gap: 10px; }
+  .kv:last-child { border-bottom: none; }
+  .kv-label { color: var(--text-muted); }
+  .kv-value { font-weight: 600; text-align: right; }
+
+  .qa-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 16px 0 14px; }
+  .qa-btn { font-size: 10px; padding: 8px 4px; text-align: center; border: 1px solid var(--border); border-radius: 7px; color: var(--text-secondary); background: var(--surface-2); }
+
+  .panel-primary { width: 100%; padding: 10px; border-radius: 8px; background: var(--accent); color: #fff; font-size: 12.5px; font-weight: 600; border: none; text-align: center; margin-bottom: 8px; }
+  .panel-secondary { display: block; text-align: center; font-size: 11.5px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/plain" id="app-src">
+const { useState, useMemo } = React;
+
+const TABLE_URL = "../../../templates/examples/ict_budget_2569.table.json";
+
+const CATEGORY_MAP = [
+  { prefix: "694101", label: "ภารกิจทั่วไป" },
+  { prefix: "694103", label: "ศิลปวัฒนธรรม" },
+  { prefix: "694104", label: "วิจัย" },
+  { prefix: "694105", label: "บริการวิชาการ" },
+];
+function categoryOf(code) { return (CATEGORY_MAP.find(c => code.startsWith(c.prefix)) || { label: "อื่นๆ" }).label; }
+
+function fmtCurrency(n) { return new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(n); }
+
+function statusOf(r) {
+  if (r.planned === 0) return { key: "warning", text: "โอนงบเพิ่ม" };
+  if (r.actual > r.planned) return { key: "critical", text: "เกินแผน" };
+  if (r.actual === 0) return { key: "warning", text: "ยังไม่เบิก" };
+  return { key: "good", text: "ปกติ" };
+}
+function riskOf(r) {
+  if (r.planned > 0 && r.actual > r.planned * 1.5) return { key: "critical", text: "สูง" };
+  if (r.planned > 0 && r.actual > r.planned) return { key: "warning", text: "ปานกลาง" };
+  if (r.planned === 0 && r.actual > 0) return { key: "warning", text: "ต้องตรวจสอบ" };
+  return { key: "good", text: "ต่ำ" };
+}
+
+function useTable() {
+  const [table, setTable] = useState(null);
+  React.useEffect(() => { fetch(TABLE_URL).then(r => r.json()).then(setTable); }, []);
+  return table;
+}
+
+function Sidebar() {
+  return (
+    <div className="sidebar">
+      <div className="brand">
+        <div className="brand-mark">IC</div>
+        <div>
+          <div className="brand-name">ICT BUDGET</div>
+          <div className="brand-sub">CONTROL CENTER</div>
+        </div>
+      </div>
+      <div className="nav-group">ภาพรวม</div>
+      <div className="nav-item"><span className="dot" />Dashboard</div>
+      <div className="nav-item active"><span className="dot" />Projects</div>
+      <div className="nav-item"><span className="dot" />Departments</div>
+      <div className="nav-group">ระบบ</div>
+      <div className="nav-item"><span className="dot" />Audit Logs</div>
+      <div className="nav-item"><span className="dot" />Settings</div>
+
+      <div className="sidebar-footer">
+        <div className="promo-card">
+          <div className="promo-icon">🔌</div>
+          <div className="promo-title">ยังไม่เชื่อมต่อ MCP Server</div>
+          <div className="promo-body">หน้านี้เป็น mockup ข้อมูลจริงจาก templates/examples/ — ai_layer และ mcp_server ยังไม่ implement</div>
+          <div className="promo-btn">เชื่อมต่อ (เร็วๆ นี้)</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Topbar() {
+  return (
+    <div className="topbar">
+      <div className="search-wrap">
+        <span className="search-icon">🔍</span>
+        <input placeholder="ค้นหาโครงการ, รหัส, หมวด..." disabled />
+        <span className="kbd-hint">⌘K</span>
+      </div>
+      <div className="topbar-spacer" />
+      <div className="icon-btn">☀️</div>
+      <div className="icon-btn">🔔<span className="badge-dot" /></div>
+      <div className="avatar-wrap">
+        <div className="avatar">พร</div>
+        <div>
+          <div className="avatar-name">Poramet</div>
+          <div className="avatar-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KpiRow({ table }) {
+  const totalPlanned = table.rows.reduce((s, r) => s + r.planned, 0);
+  const totalActual = table.rows.reduce((s, r) => s + r.actual, 0);
+  const overBudget = table.rows.filter(r => r.planned > 0 && r.actual > r.planned).length;
+  const util = totalPlanned > 0 ? (totalActual / totalPlanned) * 100 : 0;
+
+  const cards = [
+    { icon: "📁", bg: "var(--accent-soft)", color: "var(--accent)", label: "โครงการทั้งหมด", value: table.rows.length, trend: `${CATEGORY_MAP.length} หมวดภารกิจ`, cls: "" },
+    { icon: "💰", bg: "var(--blue-soft)", color: "var(--blue)", label: "งบประมาณต้นปีรวม", value: "฿" + fmtCurrency(totalPlanned), trend: "ต้นปีงบประมาณ 2569", cls: "" },
+    { icon: "📊", bg: "var(--info-soft)", color: "var(--info)", label: "งบที่ใช้ไปรวม", value: "฿" + fmtCurrency(totalActual), trend: util.toFixed(1) + "% ของแผน", cls: util > 100 ? "bad" : "good" },
+    { icon: "⚠️", bg: "var(--critical-soft)", color: "var(--critical)", label: "โครงการเกินแผน", value: overBudget, trend: overBudget > 0 ? "ต้องติดตาม" : "ปกติทั้งหมด", cls: overBudget > 0 ? "bad" : "good" },
+  ];
+
+  return (
+    <div className="kpi-row">
+      {cards.map(c => (
+        <div className="kpi-card" key={c.label}>
+          <div className="kpi-top">
+            <div>
+              <div className="kpi-label">{c.label}</div>
+              <div className="kpi-value">{c.value}</div>
+            </div>
+            <div className="kpi-icon" style={{ background: c.bg, color: c.color }}>{c.icon}</div>
+          </div>
+          <div className={"kpi-trend " + c.cls}>{c.trend}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const STATUS_FILTERS = [
+  { key: "all", label: "สถานะทั้งหมด", test: () => true },
+  { key: "critical", label: "เกินแผน", test: r => statusOf(r).key === "critical" },
+  { key: "warning", label: "ต้องตรวจสอบ", test: r => statusOf(r).key === "warning" },
+  { key: "good", label: "ปกติ", test: r => statusOf(r).key === "good" },
+];
+
+function DetailPanel({ row, meta, onClose }) {
+  if (!row) {
+    return (
+      <div className="panel">
+        <div className="panel-empty">
+          <div className="big-icon">🗂️</div>
+          เลือกโครงการในตารางด้านซ้าย<br />เพื่อดูรายละเอียดที่นี่
+        </div>
+      </div>
+    );
+  }
+  const s = statusOf(row), risk = riskOf(row);
+  const diff = row.actual - row.planned;
+  const util = row.planned > 0 ? (row.actual / row.planned) * 100 : null;
+
+  return (
+    <div className="panel">
+      <div className="panel-head-row">
+        <span className={"badge " + s.key}>{s.text}</span>
+        <button className="panel-close" onClick={onClose}>×</button>
+      </div>
+      <div className="panel-title">{row.name}</div>
+      <div className="panel-meta">{row.code} · {categoryOf(row.code)}</div>
+
+      <div className="tabs">
+        <span className="tab active">Overview</span>
+        <span className="tab">ประวัติ</span>
+        <span className="tab">Raw Data</span>
+      </div>
+
+      <div className="section-label">เกิดอะไรขึ้น?</div>
+      <div className="narrative">
+        โครงการ "{row.name}" ได้รับจัดสรรงบประมาณต้นปี ฿{fmtCurrency(row.planned)}
+        {" "}และเบิกใช้ไปแล้ว ฿{fmtCurrency(row.actual)}
+        {util !== null ? ` คิดเป็น ${util.toFixed(1)}% ของงบต้นปี` : " โดยไม่มีงบต้นปีตั้งไว้ (น่าจะได้รับโอนงบเพิ่มระหว่างปี)"}.
+      </div>
+
+      <div className="section-label">รายละเอียด</div>
+      <div className="kv"><span className="kv-label">รหัสโครงการ</span><span className="kv-value">{row.code}</span></div>
+      <div className="kv"><span className="kv-label">หมวดภารกิจ</span><span className="kv-value">{categoryOf(row.code)}</span></div>
+      <div className="kv"><span className="kv-label">งบประมาณต้นปี</span><span className="kv-value">฿{fmtCurrency(row.planned)}</span></div>
+      <div className="kv"><span className="kv-label">งบที่ใช้ไป</span><span className="kv-value">฿{fmtCurrency(row.actual)}</span></div>
+      <div className="kv"><span className="kv-label">ผลต่าง</span><span className="kv-value" style={{ color: diff > 0 ? "var(--critical)" : "var(--good)" }}>{diff > 0 ? "+" : ""}฿{fmtCurrency(diff)}</span></div>
+      <div className="kv"><span className="kv-label">ระดับความเสี่ยง</span><span className={"badge " + risk.key}>{risk.text}</span></div>
+      <div className="kv"><span className="kv-label">ข้อมูล ณ วันที่</span><span className="kv-value">{meta ? meta.generated_at.slice(0, 10) : "-"}</span></div>
+
+      <div className="qa-row">
+        <div className="qa-btn">ดูในตาราง</div>
+        <div className="qa-btn">ตั้งค่าติดตาม</div>
+        <div className="qa-btn">ส่งออก</div>
+      </div>
+
+      <button className="panel-primary">ตรวจสอบเพิ่มเติม</button>
+      <span className="panel-secondary">ดูงบประมาณคณะทั้งหมด →</span>
+    </div>
+  );
+}
+
+function App() {
+  const table = useTable();
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [q, setQ] = useState("");
+  const [selected, setSelected] = useState(null);
+
+  const rows = useMemo(() => {
+    if (!table) return [];
+    const f = STATUS_FILTERS.find(f => f.key === statusFilter);
+    return table.rows.filter(f.test).filter(r =>
+      !q || r.name.toLowerCase().includes(q.toLowerCase()) || r.code.includes(q)
+    );
+  }, [table, statusFilter, q]);
+
+  if (!table) {
+    return (
+      <div className="shell">
+        <Sidebar />
+        <div className="main"><Topbar /><div style={{ padding: 60, textAlign: "center", color: "var(--text-muted)" }}>กำลังโหลดข้อมูล...</div></div>
+      </div>
+    );
+  }
+
+  const selectedRow = table.rows.find(r => r.code === selected);
+
+  return (
+    <div className="shell">
+      <Sidebar />
+      <div className="main">
+        <Topbar />
+
+        <div className="page-head">
+          <div>
+            <div className="page-title-row"><h1>Projects</h1><span className="live-dot" /></div>
+            <p className="page-sub">งบประมาณคณะ ICT ปีงบประมาณ 2569 — {table.rows.length} โครงการ</p>
+          </div>
+          <div className="head-actions">
+            <button className="btn">Export ⌄</button>
+            <button className="btn">Saved Views ⌄</button>
+            <button className="btn primary">+ เพิ่มการแจ้งเตือน</button>
+          </div>
+        </div>
+
+        <KpiRow table={table} />
+
+        <div className="filter-row">
+          <div className="search-wrap">
+            <span className="search-icon">🔍</span>
+            <input placeholder="ค้นหาชื่อโครงการหรือรหัส..." value={q} onChange={e => setQ(e.target.value)} />
+          </div>
+          {STATUS_FILTERS.map(f => (
+            <button key={f.key} className="dd-btn" style={f.key === statusFilter ? { color: "var(--text-primary)", borderColor: "var(--border-strong)" } : {}} onClick={() => setStatusFilter(f.key)}>
+              {f.label} <span className="chev">▾</span>
+            </button>
+          ))}
+          <div className="filter-spacer" />
+          <span className="link-btn" onClick={() => { setStatusFilter("all"); setQ(""); }}>ล้างตัวกรอง</span>
+        </div>
+
+        {(statusFilter !== "all" || q) && (
+          <div className="pill-row">
+            {statusFilter !== "all" && <span className="active-pill">{STATUS_FILTERS.find(f => f.key === statusFilter).label} <span className="x" onClick={() => setStatusFilter("all")}>×</span></span>}
+            {q && <span className="active-pill">ค้นหา: "{q}" <span className="x" onClick={() => setQ("")}>×</span></span>}
+          </div>
+        )}
+
+        <div className="content-grid">
+          <div className="table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>โครงการ</th>
+                  <th>หมวด</th>
+                  <th className="num">งบต้นปี</th>
+                  <th className="num">ใช้จริง</th>
+                  <th>สถานะ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(r => (
+                  <tr key={r.code} className={selected === r.code ? "selected" : ""} onClick={() => setSelected(r.code)}>
+                    <td><span className="proj-name">{r.name}</span><span className="proj-code">{r.code}</span></td>
+                    <td><span className="badge neutral">{categoryOf(r.code)}</span></td>
+                    <td className="num">{fmtCurrency(r.planned)}</td>
+                    <td className="num">{fmtCurrency(r.actual)}</td>
+                    <td><span className={"badge " + statusOf(r).key}>{statusOf(r).text}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="table-footer">แสดง {rows.length} จาก {table.rows.length} โครงการ</div>
+          </div>
+
+          <DetailPanel row={selectedRow} meta={table.meta} onClose={() => setSelected(null)} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+<script>
+  const src = document.getElementById("app-src").textContent;
+  const { code } = Babel.transform(src, { presets: [["react", { runtime: "classic" }]] });
+  (0, eval)(code);
+</script>
+</body>
+</html>
