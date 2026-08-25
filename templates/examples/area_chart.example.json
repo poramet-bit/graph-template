@@ -1,0 +1,23 @@
+{
+  "type": "area",
+  "title": "งบที่ใช้ไปสะสม เรียงตามรหัสโครงการ",
+  "stacked": false,
+  "labels": ["694101033", "694101041", "694101048", "694101059", "694104008", "694105068"],
+  "datasets": [
+    {
+      "label": "งบที่ใช้ไปสะสม",
+      "data": [302490, 1078399, 1252001, 1783992, 2801642, 4993614],
+      "borderColor": "#2a78d6",
+      "backgroundColor": "rgba(42,120,214,0.15)"
+    }
+  ],
+  "axis": {
+    "x_label": "รหัสโครงการ",
+    "y_label": "บาท (สะสม)"
+  },
+  "meta": {
+    "source_query": "SELECT code, SUM(actual) OVER (ORDER BY code) AS cumulative FROM projects WHERE fiscal_year = 2569",
+    "generated_at": "2026-08-25T00:00:00+07:00",
+    "unit": "THB"
+  }
+}

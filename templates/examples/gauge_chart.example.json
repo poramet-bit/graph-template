@@ -1,0 +1,17 @@
+{
+  "type": "gauge",
+  "title": "อัตราการเบิกจ่ายงบประมาณ",
+  "value": 92.0,
+  "min": 0,
+  "max": 120,
+  "unit": "%",
+  "zones": [
+    { "from": 0, "to": 80, "color": "good" },
+    { "from": 80, "to": 100, "color": "warning" },
+    { "from": 100, "to": 120, "color": "critical" }
+  ],
+  "meta": {
+    "source_query": "SELECT SUM(actual) / SUM(planned) * 100 FROM projects WHERE fiscal_year = 2569",
+    "generated_at": "2026-08-25T00:00:00+07:00"
+  }
+}

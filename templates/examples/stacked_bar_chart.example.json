@@ -1,0 +1,29 @@
+{
+  "type": "stacked_bar",
+  "title": "งบที่ใช้ไป vs คงเหลือ ตามภารกิจ",
+  "orientation": "vertical",
+  "labels": ["ภารกิจทั่วไป", "ศิลปวัฒนธรรม", "วิจัย", "บริการวิชาการ"],
+  "datasets": [
+    {
+      "label": "ใช้ไปแล้ว",
+      "stack": "budget",
+      "data": [2748487, 118170, 1827650, 299307],
+      "backgroundColor": "#3987e5"
+    },
+    {
+      "label": "คงเหลือ",
+      "stack": "budget",
+      "data": [1539083, 71830, 0, 693],
+      "backgroundColor": "#2c2c2a"
+    }
+  ],
+  "axis": {
+    "x_label": "หมวดภารกิจ",
+    "y_label": "บาท"
+  },
+  "meta": {
+    "source_query": "SELECT category, SUM(actual), SUM(GREATEST(planned - actual, 0)) FROM projects WHERE fiscal_year = 2569 GROUP BY category",
+    "generated_at": "2026-08-25T00:00:00+07:00",
+    "unit": "THB"
+  }
+}

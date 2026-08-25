@@ -51,9 +51,10 @@ two-stream timing.
 
 ## Layout
 
-- `templates/` — JSON schema for each chart type: pie, bar, line, table.
-  `templates/examples/` has one filled-in instance per schema, including a
-  real dataset (`ict_budget_2569.table.json`, ICT faculty budget data).
+- `templates/` — JSON schema for each chart type: pie, bar, line, area,
+  stacked_bar, gauge, stat_card, table. `templates/examples/` has one
+  filled-in instance per schema, including a real dataset
+  (`ict_budget_2569.table.json`, ICT faculty budget data).
 - `docs/architecture/` — reference diagrams for the target pipeline.
 - `modules/mcp_server/` — source system connector (not yet implemented).
 - `modules/data_layer/` — local structured store (not yet implemented).

@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StackedBarChartTemplate",
+  "type": "object",
+  "required": ["type", "title", "labels", "datasets"],
+  "properties": {
+    "type": { "const": "stacked_bar" },
+    "title": { "type": "string" },
+    "orientation": { "type": "string", "enum": ["vertical", "horizontal"] },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "datasets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["label", "data", "stack"],
+        "properties": {
+          "label": { "type": "string" },
+          "data": {
+            "type": "array",
+            "items": { "type": "number" }
+          },
+          "stack": { "type": "string" },
+          "backgroundColor": { "type": "string" }
+        }
+      }
+    },
+    "axis": {
+      "type": "object",
+      "properties": {
+        "x_label": { "type": "string" },
+        "y_label": { "type": "string" }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "source_query": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "unit": { "type": "string" }
+      }
+    }
+  }
+}
