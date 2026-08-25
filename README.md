@@ -21,10 +21,33 @@ E-budget --> mcp_server --> data_layer (DuckDB/SQLite) [+ Vector DB later]
 
 `security` cross-cuts all layers (RBAC + read-only source access + encryption at rest).
 
-A more detailed target flow — `User -> Go Backend (MCP orchestrator) -> MCP
-Server -> Subagent (graph engine) -> Frontend`, with two parallel outputs
-(streaming text + subagent-built graph) — is diagrammed in
-`docs/architecture/dual-output-flow.jpeg`.
+### Target request flow (dual output)
+
+The diagram in `docs/architecture/dual-output-flow.jpeg` breaks the pipeline
+above into five stages and two outputs the frontend receives in parallel:
+
+1. **User / Frontend (React UI)** — sends the chat request, opens an SSE
+   connection, renders both outputs as they arrive.
+2. **Go Backend (MCP orchestrator)** — receives the query, calls the LLM
+   with the MCP tools schema, streams `status` / `tool_call` / `tool_result`
+   / `final_text` SSE events back as it works.
+3. **Data Source / MCP Server (Tools / MCP)** — executes the actual tool
+   calls (JSON-RPC 2.0 over `tools/call`) and returns structured data.
+4. **Subagent (Graph Engine)** — spawned by the backend once the answer is
+   ready; decomposes the visualization request into subtasks (e.g. fetch
+   projects, summarize budget, pick top N), aggregates the results, and
+   generates a chart spec (ECharts/Recharts/Vega JSON) matching a
+   `templates/*.schema.json` shape.
+5. **Frontend / Result** — renders **Output 1** (the MCP prompt's streamed
+   text answer) as soon as it lands, then **Output 2** (the subagent's chart)
+   when its own SSE stream (`graph_spec_result` → `completed`) finishes —
+   Output 2 arrives after Output 1 since it waits on the subagent.
+
+Why split it this way: the main agent only reasons and answers in text (fast,
+no chart-building latency on that path); the subagent handles visualization
+independently and can be scaled out per chart type without touching the main
+agent. `modules/presentation/models/graph.html` mocks exactly this two-stream
+timing.
 
 ## Layout
 
