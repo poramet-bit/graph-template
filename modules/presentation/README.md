@@ -34,4 +34,13 @@ arriving after Output 1 since it waits on the subagent.
   bar chart + pie chart + top-overrun list) and **Projects** (filterable/
   searchable table with a right-side detail panel on row click).
 
+### New schema types
+
+- `models/insights.html` — one page filling all 4 newer schema types
+  with real numbers computed from the same table: `gauge_chart.schema.json`
+  (disbursement rate, with good/warning/critical zones), `stat_card.schema.json`
+  ×4 (KPI row), `stacked_bar_chart.schema.json` (used vs remaining budget per
+  mission category), `area_chart.schema.json` (cumulative spend by project
+  code).
+
 All mockups read `templates/examples/ict_budget_2569.table.json`.
