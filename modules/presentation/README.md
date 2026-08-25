@@ -22,3 +22,6 @@ for the JSON shape each renderer must accept.
 All are plain React via CDN (no build step) — open through a local server
 (e.g. `python3 -m http.server` from the repo root), not `file://`, since they
 `fetch()` the template JSON by relative path.
+
+`models/graph.html` mocks the flow diagrammed in
+`../../docs/architecture/dual-output-flow.jpeg`.
