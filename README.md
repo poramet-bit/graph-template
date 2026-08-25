@@ -70,6 +70,10 @@ Each module is independent — build and test in isolation, wire into
 ## Local dev server
 
 The mockups `fetch()` template JSON by relative path, so they need to be
-served over HTTP, not opened as `file://`. Run `./serve.sh` from the repo
-root (port comes from `dev.env`, not `.env` — see that file's comment for
-why) and open `modules/presentation/models/index.html`.
+served over HTTP, not opened as `file://`. From the repo root:
+
+```
+python3 -m http.server 8791
+```
+
+then open `modules/presentation/models/index.html`.
