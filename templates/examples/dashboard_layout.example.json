@@ -1,0 +1,199 @@
+{
+  "type": "dashboard",
+  "title": "งบประมาณคณะ ICT ปีงบประมาณ 2569",
+  "subtitle": "ภาพรวมทุกมิติในหน้าเดียว -- ประกอบจาก widget 8 ชนิดตาม templates/*.schema.json",
+  "meta": {
+    "source_query": "SELECT * FROM projects WHERE fiscal_year = 2569",
+    "generated_at": "2026-08-25T00:00:00+07:00"
+  },
+  "widgets": [
+    {
+      "size": "quarter",
+      "data": {
+        "type": "stat_card",
+        "label": "งบประมาณต้นปีรวม",
+        "value": 5427570,
+        "format": "currency",
+        "icon": "💰",
+        "status": "neutral",
+        "trend": { "direction": "flat", "label": "ปีงบประมาณ 2569" }
+      }
+    },
+    {
+      "size": "quarter",
+      "data": {
+        "type": "stat_card",
+        "label": "งบที่ใช้ไปรวม",
+        "value": 4993614,
+        "format": "currency",
+        "icon": "📊",
+        "status": "good",
+        "trend": { "direction": "up", "value": 92.0, "label": "92.0% ของงบต้นปี" }
+      }
+    },
+    {
+      "size": "quarter",
+      "data": {
+        "type": "stat_card",
+        "label": "โครงการเกินแผน",
+        "value": 3,
+        "format": "number",
+        "icon": "⚠️",
+        "status": "warning",
+        "trend": { "direction": "up", "label": "ต้องติดตาม" }
+      }
+    },
+    {
+      "size": "quarter",
+      "data": {
+        "type": "stat_card",
+        "label": "โครงการทั้งหมด",
+        "value": 38,
+        "format": "number",
+        "icon": "📁",
+        "status": "neutral",
+        "trend": { "direction": "flat", "label": "4 หมวดภารกิจ" }
+      }
+    },
+    {
+      "size": "half",
+      "data": {
+        "type": "gauge",
+        "title": "อัตราการเบิกจ่ายงบประมาณ",
+        "value": 92.0,
+        "min": 0,
+        "max": 120,
+        "unit": "%",
+        "zones": [
+          { "from": 0, "to": 80, "color": "good" },
+          { "from": 80, "to": 100, "color": "warning" },
+          { "from": 100, "to": 120, "color": "critical" }
+        ],
+        "meta": {
+          "source_query": "SELECT SUM(actual) / SUM(planned) * 100 FROM projects WHERE fiscal_year = 2569",
+          "generated_at": "2026-08-25T00:00:00+07:00"
+        }
+      }
+    },
+    {
+      "size": "half",
+      "data": {
+        "type": "pie",
+        "title": "งบตามภารกิจ",
+        "labels": ["ภารกิจทั่วไป", "ศิลปวัฒนธรรม", "วิจัย", "บริการวิชาการ"],
+        "datasets": [
+          {
+            "label": "เบิกจ่ายแล้ว",
+            "data": [2748487, 118170, 1827650, 299307],
+            "backgroundColor": ["#3987e5", "#d95926", "#199e70", "#c98500"]
+          }
+        ],
+        "meta": {
+          "source_query": "SELECT category, SUM(actual) FROM projects WHERE fiscal_year = 2569 GROUP BY category",
+          "generated_at": "2026-08-25T00:00:00+07:00",
+          "unit": "THB"
+        }
+      }
+    },
+    {
+      "size": "full",
+      "data": {
+        "type": "bar",
+        "title": "งบต้นปี vs ใช้จริง -- 6 โครงการงบสูงสุด",
+        "labels": ["694101046", "694104008", "694101059", "694104087", "694101033", "694105002"],
+        "datasets": [
+          { "label": "งบประมาณต้นปี", "data": [700000, 450000, 700000, 0, 350000, 300000], "backgroundColor": "#3987e5" },
+          { "label": "งบที่ใช้ไป", "data": [672053, 800000, 400000, 950000, 302490, 220000], "backgroundColor": "#d95926" }
+        ],
+        "axis": { "x_label": "รหัสโครงการ", "y_label": "บาท" },
+        "meta": {
+          "source_query": "SELECT code, planned, actual FROM projects ORDER BY planned + actual DESC LIMIT 6",
+          "generated_at": "2026-08-25T00:00:00+07:00",
+          "unit": "THB"
+        }
+      }
+    },
+    {
+      "size": "half",
+      "data": {
+        "type": "stacked_bar",
+        "title": "งบที่ใช้ไป vs คงเหลือ ตามภารกิจ",
+        "orientation": "vertical",
+        "labels": ["ภารกิจทั่วไป", "ศิลปวัฒนธรรม", "วิจัย", "บริการวิชาการ"],
+        "datasets": [
+          { "label": "ใช้ไปแล้ว", "stack": "budget", "data": [2748487, 118170, 1827650, 299307], "backgroundColor": "#3987e5" },
+          { "label": "คงเหลือ", "stack": "budget", "data": [1539083, 71830, 0, 693], "backgroundColor": "#2c2c2a" }
+        ],
+        "axis": { "x_label": "หมวดภารกิจ", "y_label": "บาท" },
+        "meta": {
+          "source_query": "SELECT category, SUM(actual), SUM(GREATEST(planned - actual, 0)) FROM projects GROUP BY category",
+          "generated_at": "2026-08-25T00:00:00+07:00",
+          "unit": "THB"
+        }
+      }
+    },
+    {
+      "size": "half",
+      "data": {
+        "type": "line",
+        "title": "งบที่เบิกจ่ายรายไตรมาส",
+        "labels": ["Q1", "Q2", "Q3", "Q4"],
+        "datasets": [
+          { "label": "ปีงบประมาณ 2569", "data": [850000, 1400000, 1650000, 1093614], "borderColor": "#3987e5", "fill": false }
+        ],
+        "axis": { "x_label": "ไตรมาส", "y_label": "บาท" },
+        "meta": {
+          "source_query": "SELECT quarter, SUM(actual) FROM projects WHERE fiscal_year = 2569 GROUP BY quarter",
+          "generated_at": "2026-08-25T00:00:00+07:00",
+          "unit": "THB"
+        }
+      }
+    },
+    {
+      "size": "full",
+      "data": {
+        "type": "area",
+        "title": "งบที่ใช้ไปสะสม เรียงตามรหัสโครงการ",
+        "stacked": false,
+        "labels": ["694101033", "694101041", "694101048", "694101059", "694104008", "694105068"],
+        "datasets": [
+          {
+            "label": "งบที่ใช้ไปสะสม",
+            "data": [302490, 1078399, 1252001, 1783992, 2801642, 4993614],
+            "borderColor": "#2a78d6",
+            "backgroundColor": "rgba(42,120,214,0.15)"
+          }
+        ],
+        "axis": { "x_label": "รหัสโครงการ", "y_label": "บาท (สะสม)" },
+        "meta": {
+          "source_query": "SELECT code, SUM(actual) OVER (ORDER BY code) AS cumulative FROM projects WHERE fiscal_year = 2569",
+          "generated_at": "2026-08-25T00:00:00+07:00",
+          "unit": "THB"
+        }
+      }
+    },
+    {
+      "size": "full",
+      "data": {
+        "type": "table",
+        "title": "รายละเอียดโครงการที่ใช้งบเกินแผน",
+        "columns": [
+          { "key": "project", "label": "โครงการ", "format": "text" },
+          { "key": "planned", "label": "งบตามแผน", "format": "currency" },
+          { "key": "actual", "label": "ใช้จริง", "format": "currency" },
+          { "key": "overrun_pct", "label": "เกินแผน (%)", "format": "percent" }
+        ],
+        "rows": [
+          { "project": "โครงการ Show Case ICT Festival", "planned": 80000, "actual": 143200, "overrun_pct": 79 },
+          { "project": "โครงการส่งเสริมผลการเรียนรู้ฯ สาขาเทคโนโลยีสารสนเทศ", "planned": 89600, "actual": 109500, "overrun_pct": 22 },
+          { "project": "โครงการส่งเสริมผลการเรียนรู้ฯ สาขาภูมิสารสนเทศศาสตร์", "planned": 91880, "actual": 101880, "overrun_pct": 11 }
+        ],
+        "meta": {
+          "source_query": "SELECT project, planned, actual FROM projects WHERE actual > planned",
+          "generated_at": "2026-08-25T00:00:00+07:00",
+          "row_count": 3
+        }
+      }
+    }
+  ]
+}

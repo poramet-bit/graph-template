@@ -31,11 +31,11 @@
   <h1>Presentation mockups</h1>
   <p class="lead">งบประมาณคณะ ICT ปีงบประมาณ 2569 — data จาก templates/examples/ict_budget_2569.table.json</p>
 
-  <h2 class="group">Main dashboard</h2>
+  <h2 class="group">Main dashboard (generic template)</h2>
   <a class="card" href="dashboard.html">
     <div class="tag">dashboard.html</div>
-    <h3>ICT Budget Analytics</h3>
-    <p>ทุก schema ทั้ง 6 แบบในหน้าเดียว — stat_card, gauge_chart, pie_chart, bar_chart, stacked_bar_chart, area_chart — dark theme, ตรวจสี categorical ผ่าน dataviz validator แล้ว</p>
+    <h3>Dashboard template</h3>
+    <p>ไม่ผูกกับข้อมูล ICT budget อีกต่อไป — อ่าน config ตาม dashboard_layout.schema.json แล้ว render widget ทั้ง 8 ชนิด (stat_card, gauge, pie, bar, line, area, stacked_bar, table) ตาม data.type ของแต่ละ widget เอง เปลี่ยนข้อมูลได้ด้วย ?config=path/to/your.json</p>
   </a>
 
   <h2 class="group">Dual-output flow (User → Go Backend → MCP Server → Subagent → Frontend)</h2>

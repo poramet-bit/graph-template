@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="utf-8" />
-<title>ICT Budget Analytics</title>
+<title>Dashboard Template</title>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
@@ -12,11 +12,11 @@
     --gridline: #232327; --baseline: #303036;
     --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.14);
     --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #82828c;
-    --accent: #7c6ee0; --accent-soft: rgba(124,110,224,0.16); --accent-glow: rgba(124,110,224,0.35);
+    --accent: #7c6ee0; --accent-soft: rgba(124,110,224,0.16);
     --good: #22c55e; --good-soft: rgba(34,197,94,0.14);
     --warning: #f5a524; --warning-soft: rgba(245,165,36,0.14);
     --critical: #ef4444; --critical-soft: rgba(239,68,68,0.14);
-    /* categorical, fixed order, validated: node validate_palette.js "#3987e5,#d95926,#199e70,#c98500" --mode dark -> ALL PASS */
+    /* fallback categorical steps, used only when a widget omits its own color */
     --chart-1: #3987e5; --chart-2: #d95926; --chart-3: #199e70; --chart-4: #c98500;
   }
   * { box-sizing: border-box; }
@@ -43,7 +43,7 @@
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
   .head-sub { font-size: 12.5px; color: var(--text-secondary); margin: 5px 0 0; }
   .head-meta { font-size: 11px; color: var(--text-muted); text-align: right; }
-  .head-meta .badge-live { color: var(--good); font-weight: 600; }
+  .head-meta code { font-size: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
 
   /* ---- cards ---- */
   .card {
@@ -57,8 +57,18 @@
   .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
   .schema-tag { font-size: 9px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; padding: 3px 7px; border-radius: 99px; color: var(--text-muted); border: 1px solid var(--border); white-space: nowrap; flex: none; }
 
-  /* ---- kpi row ---- */
-  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  /* ---- widget grid: layout is packed purely from each widget's declared size ---- */
+  .widget-row { display: grid; gap: 12px; margin-bottom: 12px; align-items: stretch; }
+  .widget-row.row-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .widget-row.row-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .widget-row.row-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .widget-row.row-cols-1 { grid-template-columns: 1fr; }
+  @media (max-width: 900px) {
+    .widget-row.row-cols-4 { grid-template-columns: repeat(2, 1fr); }
+    .widget-row.row-cols-3, .widget-row.row-cols-2 { grid-template-columns: 1fr; }
+  }
+
+  /* ---- stat_card ---- */
   .kpi-card { padding: 16px; }
   .kpi-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
   .kpi-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex: none; }
@@ -70,11 +80,6 @@
   .kpi-trend.critical { color: var(--critical); }
   .kpi-trend.neutral { color: var(--text-muted); font-weight: 400; }
 
-  /* ---- grid layout ---- */
-  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; align-items: stretch; }
-  .row-2.uneven { grid-template-columns: 1.4fr 1fr; }
-  .full { margin-bottom: 12px; }
-
   /* ---- shared chart bits ---- */
   .legend { display: flex; gap: 14px; margin-bottom: 10px; flex-wrap: wrap; }
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
@@ -83,14 +88,15 @@
   .axis-label { fill: var(--text-muted); font-size: 9.5px; }
   .gridline-el { stroke: var(--gridline); stroke-width: 1; }
   .baseline-el { stroke: var(--baseline); stroke-width: 1; }
+  .crosshair-el { stroke: var(--border-strong); stroke-width: 1; }
   .chart-tooltip {
     position: absolute; pointer-events: none; background: var(--surface-2); border: 1px solid var(--border-strong);
     border-radius: 8px; padding: 8px 10px; font-size: 11px; box-shadow: 0 8px 24px rgba(0,0,0,0.45);
     max-width: 230px; line-height: 1.55; z-index: 10;
   }
   .chart-tooltip .t-title { font-weight: 650; margin-bottom: 3px; color: var(--text-primary); }
-  .chart-tooltip .t-row { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); }
-  .chart-tooltip .t-row .v { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .chart-tooltip .t-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-secondary); }
+  .chart-tooltip .t-row .v { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; margin-left: auto; }
 
   /* ---- gauge ---- */
   .gauge-wrap { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
@@ -105,68 +111,65 @@
   .donut-center { font-size: 17px; font-weight: 700; }
   .donut-center-label { font-size: 9.5px; }
 
-  /* ---- overrun list ---- */
-  .mini-list { display: flex; flex-direction: column; }
-  .mini-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; gap: 10px; }
-  .mini-row:last-child { border-bottom: none; }
-  .mini-rank { width: 18px; height: 18px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 9.5px; color: var(--text-muted); flex: none; }
-  .mini-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); }
-  .badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 99px; display: inline-block; white-space: nowrap; }
-  .badge.good { color: var(--good); background: var(--good-soft); }
-  .badge.warning { color: var(--warning); background: var(--warning-soft); }
-  .badge.critical { color: var(--critical); background: var(--critical-soft); }
-
-  /* ---- data table (accessible fallback) ---- */
-  .table-toggle { font-size: 11.5px; color: var(--text-secondary); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 6px; }
-  .table-toggle:hover { border-color: var(--border-strong); color: var(--text-primary); }
-  .table-scroll { overflow-x: auto; margin-top: 12px; }
+  /* ---- table ---- */
+  .table-scroll { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; }
   thead th { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); font-weight: 500; padding: 9px 12px; border-bottom: 1px solid var(--border); }
   thead th.num { text-align: right; }
   tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 12px; white-space: nowrap; }
   tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover { background: rgba(255,255,255,0.02); }
 
-  .loading { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; padding: 90px 0; justify-content: center; }
+  .loading, .error-box { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; padding: 90px 0; justify-content: center; }
+  .error-box { color: var(--critical); }
   .spinner { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--gridline); border-top-color: var(--accent); animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 900px) {
-    .kpi-row { grid-template-columns: repeat(2, 1fr); }
-    .row-2, .row-2.uneven { grid-template-columns: 1fr; }
-  }
 </style>
 </head>
 <body>
 <div id="root"></div>
 
 <script type="text/plain" id="app-src">
-const { useState, useEffect, useRef, useMemo } = React;
+const { useState, useEffect, useRef } = React;
 
-const TABLE_URL = "../../../templates/examples/ict_budget_2569.table.json";
+// Any templates/examples/*.json file matching dashboard_layout.schema.json works here --
+// swap it with ?config=path/to/your.json (relative to this file).
+const DEFAULT_CONFIG = "../../../templates/examples/dashboard_layout.example.json";
+const CONFIG_URL = new URLSearchParams(location.search).get("config") || DEFAULT_CONFIG;
 
-const CATEGORY_MAP = [
-  { prefix: "694101", label: "ภารกิจทั่วไป", color: "var(--chart-1)" },
-  { prefix: "694103", label: "ศิลปวัฒนธรรม", color: "var(--chart-2)" },
-  { prefix: "694104", label: "วิจัย", color: "var(--chart-3)" },
-  { prefix: "694105", label: "บริการวิชาการ", color: "var(--chart-4)" },
-];
-function categoryOf(code) { return (CATEGORY_MAP.find(c => code.startsWith(c.prefix)) || { label: "อื่นๆ" }).label; }
-
-function fmtCurrency(n) { return new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(Math.round(n)); }
+function fmtNumber(n) { return new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(Math.round(n)); }
 function fmtCompact(n) {
-  if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
-  if (Math.abs(n) >= 1_000) return Math.round(n / 1_000) + "k";
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (abs >= 1_000) return Math.round(n / 1_000) + "k";
   return String(Math.round(n));
 }
+function fmtValue(value, format) {
+  if (value == null) return "–";
+  if (format === "currency") return "฿" + fmtNumber(value);
+  if (format === "percent") return Number(value).toFixed(1) + "%";
+  if (format === "date") return String(value).slice(0, 10);
+  if (format === "text") return String(value);
+  return fmtNumber(value);
+}
 
-// top-rounded rect (4px, square at the baseline) -- mark spec from dataviz skill
+// "nice" axis ceiling, scale-agnostic (works for counts, percents, or millions of baht alike)
+function niceMax(value, steps) {
+  if (!(value > 0)) return steps;
+  const rough = value / steps;
+  const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm = rough / mag;
+  const niceNorm = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+  return niceNorm * mag * steps;
+}
+
+// top-rounded rect (4px, square at the baseline) -- mark spec from the dataviz skill
 function topRoundedRectPath(x, y, w, h, r) {
   if (h <= 0 || w <= 0) return "";
   const rr = Math.min(r, w / 2, h);
   return `M${x},${y + h} L${x},${y + rr} Q${x},${y} ${x + rr},${y} L${x + w - rr},${y} Q${x + w},${y} ${x + w},${y + rr} L${x + w},${y + h} Z`;
 }
-
 function polarPoint(cx, cy, r, angleDeg) {
   const rad = (angleDeg * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy - r * Math.sin(rad) };
@@ -176,193 +179,95 @@ function valueToAngle(value, min, max) {
   return 180 - f * 180;
 }
 
-// Computed once here the way a subagent would, then handed to renderers that
-// only trust the shape -- mirrors templates/*.schema.json for each section.
-function useInsights() {
-  const [table, setTable] = useState(null);
-  const [derived, setDerived] = useState(null);
-
-  useEffect(() => {
-    fetch(TABLE_URL).then(r => r.json()).then(tpl => {
-      setTable(tpl);
-      const totalPlanned = tpl.rows.reduce((s, r) => s + r.planned, 0);
-      const totalActual = tpl.rows.reduce((s, r) => s + r.actual, 0);
-      const overBudget = tpl.rows.filter(r => r.planned > 0 && r.actual > r.planned).length;
-      const util = totalPlanned > 0 ? (totalActual / totalPlanned) * 100 : 0;
-
-      const gauge = {
-        type: "gauge", title: "อัตราการเบิกจ่ายงบประมาณ",
-        value: util, min: 0, max: 120, unit: "%",
-        zones: [
-          { from: 0, to: 80, color: "good" },
-          { from: 80, to: 100, color: "warning" },
-          { from: 100, to: 120, color: "critical" },
-        ],
-      };
-
-      const stats = [
-        { type: "stat_card", label: "งบประมาณต้นปีรวม", value: totalPlanned, format: "currency", icon: "💰", status: "neutral", trend: { label: "ปีงบประมาณ 2569" } },
-        { type: "stat_card", label: "งบที่ใช้ไปรวม", value: totalActual, format: "currency", icon: "📊", status: util > 100 ? "critical" : "good", trend: { label: `${util.toFixed(1)}% ของแผน` } },
-        { type: "stat_card", label: "โครงการเกินแผน", value: overBudget, format: "number", icon: "⚠️", status: overBudget > 0 ? "warning" : "good", trend: { label: overBudget > 0 ? "ต้องติดตาม" : "ปกติทั้งหมด" } },
-        { type: "stat_card", label: "โครงการทั้งหมด", value: tpl.rows.length, format: "number", icon: "📁", status: "neutral", trend: { label: `${CATEGORY_MAP.length} หมวดภารกิจ` } },
-      ];
-
-      const catAgg = CATEGORY_MAP.map(c => {
-        const catRows = tpl.rows.filter(r => r.code.startsWith(c.prefix));
-        const planned = catRows.reduce((s, r) => s + r.planned, 0);
-        const actual = catRows.reduce((s, r) => s + r.actual, 0);
-        return { label: c.label, color: c.color, planned, actual, remaining: Math.max(planned - actual, 0) };
-      });
-      const stacked = {
-        type: "stacked_bar", title: "ใช้ไป vs คงเหลือ ตามภารกิจ",
-        labels: catAgg.map(c => c.label),
-        datasets: [
-          { label: "ใช้ไปแล้ว", data: catAgg.map(c => c.actual), backgroundColor: "var(--chart-1)" },
-          { label: "คงเหลือ", data: catAgg.map(c => c.remaining), backgroundColor: "rgba(57,135,229,0.22)" },
-        ],
-      };
-
-      const sorted = [...tpl.rows].sort((a, b) => a.code.localeCompare(b.code));
-      let running = 0;
-      const points = sorted.map(r => { running += r.actual; return { code: r.code, name: r.name, cumulative: running }; });
-      const area = { type: "area", title: "งบที่ใช้ไปสะสม เรียงตามรหัสโครงการ", points };
-
-      const ranked = [...tpl.rows].sort((a, b) => (b.planned + b.actual) - (a.planned + a.actual)).slice(0, 8);
-      const bar = { type: "bar", title: "งบต้นปี vs ใช้จริง", ranked };
-
-      const donut = { type: "pie", title: "งบตามภารกิจ", cats: catAgg.map(c => ({ label: c.label, color: c.color, value: c.actual })) };
-
-      const overrun = tpl.rows
-        .filter(r => r.planned > 0 && r.actual > r.planned)
-        .map(r => ({ ...r, pct: ((r.actual - r.planned) / r.planned) * 100 }))
-        .sort((a, b) => b.pct - a.pct)
-        .slice(0, 6);
-
-      setDerived({ gauge, stats, stacked, area, bar, donut, overrun });
-    });
-  }, []);
-
-  return { table, ...(derived || {}) };
+// ---- layout packer: greedily fills rows from each widget's declared size,
+// flushing a partial row rather than leaving a gap -- see dashboard_layout.schema.json ----
+function packRows(widgets) {
+  const rows = [];
+  let qBuf = [], hBuf = [];
+  const flushQ = () => { if (qBuf.length) { rows.push({ cols: qBuf.length, items: qBuf }); qBuf = []; } };
+  const flushH = () => { if (hBuf.length) { rows.push({ cols: hBuf.length, items: hBuf }); hBuf = []; } };
+  for (const w of widgets) {
+    if (w.size === "quarter") {
+      flushH();
+      qBuf.push(w);
+      if (qBuf.length === 4) flushQ();
+    } else if (w.size === "half") {
+      flushQ();
+      hBuf.push(w);
+      if (hBuf.length === 2) flushH();
+    } else {
+      flushQ(); flushH();
+      rows.push({ cols: 1, items: [w] });
+    }
+  }
+  flushQ(); flushH();
+  return rows;
 }
 
-function Gauge({ tpl }) {
+function widgetSubtitle(d) {
+  const bits = [];
+  if (d.axis && (d.axis.x_label || d.axis.y_label)) bits.push([d.axis.x_label, d.axis.y_label].filter(Boolean).join(" / "));
+  if (d.type === "gauge" && d.zones) bits.push(d.zones.map(z => `${z.from}–${z.to}${d.unit || ""}`).join(" · "));
+  if (d.type === "table" && d.meta && d.meta.row_count != null) bits.push(`${d.meta.row_count} rows`);
+  if (d.meta && d.meta.unit) bits.push(d.meta.unit);
+  return bits.length ? bits.join(" — ") : null;
+}
+
+function StatCard({ d }) {
+  const iconBg = { good: "var(--good-soft)", warning: "var(--warning-soft)", critical: "var(--critical-soft)", neutral: "var(--accent-soft)" };
+  const iconColor = { good: "var(--good)", warning: "var(--warning)", critical: "var(--critical)", neutral: "var(--accent)" };
+  const status = d.status || "neutral";
+  const arrow = d.trend ? ({ up: "▲ ", down: "▼ ", flat: "● " }[d.trend.direction] || "") : "";
+  return (
+    <div className="card kpi-card">
+      <div className="kpi-top">
+        <div>
+          <div className="kpi-label">{d.label}</div>
+          <div className="kpi-value">{fmtValue(d.value, d.format)}</div>
+        </div>
+        {d.icon && <div className="kpi-icon" style={{ background: iconBg[status], color: iconColor[status] }}>{d.icon}</div>}
+      </div>
+      {d.trend && <div className={"kpi-trend " + status}>{arrow}{d.trend.label}</div>}
+    </div>
+  );
+}
+
+function Gauge({ d }) {
   const cx = 110, cy = 100, r = 80, strokeW = 16;
   const zoneColor = { good: "var(--good)", warning: "var(--warning)", critical: "var(--critical)" };
-  const activeZone = tpl.zones.find(z => tpl.value >= z.from && tpl.value <= z.to) || tpl.zones[tpl.zones.length - 1];
-  const needleAngle = valueToAngle(tpl.value, tpl.min, tpl.max);
+  const zones = d.zones && d.zones.length ? d.zones : [{ from: d.min, to: d.max, color: "good" }];
+  const activeZone = zones.find(z => d.value >= z.from && d.value <= z.to) || zones[zones.length - 1];
+  const needleAngle = valueToAngle(d.value, d.min, d.max);
   const needleTip = polarPoint(cx, cy, r, needleAngle);
 
   return (
     <div className="gauge-wrap">
-      <svg viewBox="0 0 220 120" width="240" role="img" aria-label={`${tpl.title}: ${tpl.value.toFixed(1)}${tpl.unit}`}>
-        {tpl.zones.map((z, i) => {
-          const a1 = valueToAngle(z.from, tpl.min, tpl.max);
-          const a2 = valueToAngle(z.to, tpl.min, tpl.max);
-          const p1 = polarPoint(cx, cy, r, a1);
-          const p2 = polarPoint(cx, cy, r, a2);
+      <svg viewBox="0 0 220 120" width="240" role="img" aria-label={`${d.title}: ${d.value.toFixed(1)}${d.unit || ""}`}>
+        {zones.map((z, i) => {
+          const a1 = valueToAngle(z.from, d.min, d.max), a2 = valueToAngle(z.to, d.min, d.max);
+          const p1 = polarPoint(cx, cy, r, a1), p2 = polarPoint(cx, cy, r, a2);
           const largeArc = Math.abs(a1 - a2) > 180 ? 1 : 0;
           return <path key={i} d={`M ${p1.x} ${p1.y} A ${r} ${r} 0 ${largeArc} 1 ${p2.x} ${p2.y}`} fill="none" stroke={zoneColor[z.color]} strokeWidth={strokeW} strokeLinecap="butt" opacity={0.28} />;
         })}
-        <path d={`M ${polarPoint(cx, cy, r, 180).x} ${polarPoint(cx, cy, r, 180).y} A ${r} ${r} 0 ${valueToAngle(tpl.min, tpl.min, tpl.max) - needleAngle > 180 ? 1 : 0} 1 ${needleTip.x} ${needleTip.y}`}
+        <path d={`M ${polarPoint(cx, cy, r, 180).x} ${polarPoint(cx, cy, r, 180).y} A ${r} ${r} 0 ${valueToAngle(d.min, d.min, d.max) - needleAngle > 180 ? 1 : 0} 1 ${needleTip.x} ${needleTip.y}`}
           fill="none" stroke={zoneColor[activeZone.color]} strokeWidth={strokeW} strokeLinecap="round" />
         <circle cx={needleTip.x} cy={needleTip.y} r={5} fill={zoneColor[activeZone.color]} stroke="var(--surface)" strokeWidth={2.5} />
       </svg>
-      <div className="gauge-value">{tpl.value.toFixed(1)}{tpl.unit}</div>
-      <div className="gauge-caption">จาก {tpl.min}–{tpl.max}{tpl.unit}</div>
+      <div className="gauge-value">{d.value.toFixed(1)}{d.unit}</div>
+      <div className="gauge-caption">จาก {d.min}–{d.max}{d.unit}</div>
       <div className="gauge-legend">
-        {tpl.zones.map((z, i) => (
-          <div className="gauge-legend-item" key={i}><span className="gauge-swatch" style={{ background: zoneColor[z.color] }} />{z.from}–{z.to}{tpl.unit}</div>
+        {zones.map((z, i) => (
+          <div className="gauge-legend-item" key={i}><span className="gauge-swatch" style={{ background: zoneColor[z.color] }} />{z.from}–{z.to}{d.unit}</div>
         ))}
       </div>
     </div>
   );
 }
 
-function KpiRow({ stats }) {
-  const iconBg = { good: "var(--good-soft)", warning: "var(--warning-soft)", critical: "var(--critical-soft)", neutral: "var(--accent-soft)" };
-  const iconColor = { good: "var(--good)", warning: "var(--warning)", critical: "var(--critical)", neutral: "var(--accent)" };
-  return (
-    <div className="kpi-row">
-      {stats.map((c, i) => (
-        <div className="card kpi-card" key={c.label} style={{ animationDelay: `${i * 40}ms` }}>
-          <div className="kpi-top">
-            <div>
-              <div className="kpi-label">{c.label}</div>
-              <div className="kpi-value">{c.format === "currency" ? "฿" + fmtCurrency(c.value) : c.value}</div>
-            </div>
-            <div className="kpi-icon" style={{ background: iconBg[c.status], color: iconColor[c.status] }}>{c.icon}</div>
-          </div>
-          <div className={"kpi-trend " + c.status}>{c.trend.label}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function BarChart({ tpl }) {
+function Donut({ d }) {
   const [hover, setHover] = useState(null);
-  const wrapRef = useRef(null);
-  const ranked = tpl.ranked;
-  const width = 900, height = 260;
-  const marginLeft = 50, marginRight = 8, marginTop = 8, marginBottom = 32;
-  const plotW = width - marginLeft - marginRight, plotH = height - marginTop - marginBottom;
-  const maxVal = Math.max(1, ...ranked.flatMap(r => [r.planned, r.actual]));
-  const niceMax = Math.ceil(maxVal / 200000) * 200000;
-  const gridSteps = 4;
-  const n = ranked.length, groupW = plotW / n;
-  const barGap = 2, groupGap = 14;
-  const barW = Math.min((groupW - groupGap - barGap) / 2, 24);
-  const seriesOffset = groupW / 2 - (barW * 2 + barGap) / 2;
-  const yFor = v => plotH - (v / niceMax) * plotH;
-
-  return (
-    <div style={{ position: "relative" }} ref={wrapRef}>
-      <div className="legend">
-        <div className="legend-item"><span className="swatch" style={{ background: "var(--chart-1)" }} />งบประมาณต้นปี</div>
-        <div className="legend-item"><span className="swatch" style={{ background: "var(--chart-2)" }} />งบที่ใช้ไป</div>
-      </div>
-      <svg viewBox={`0 0 ${width} ${height}`} width="100%">
-        <g transform={`translate(${marginLeft},${marginTop})`}>
-          {Array.from({ length: gridSteps + 1 }).map((_, i) => {
-            const v = (niceMax / gridSteps) * i, y = yFor(v);
-            return (<g key={i}><line x1={0} x2={plotW} y1={y} y2={y} className="gridline-el" /><text x={-8} y={y} textAnchor="end" dominantBaseline="middle" className="axis-label">{fmtCompact(v)}</text></g>);
-          })}
-          <line x1={0} x2={plotW} y1={plotH} y2={plotH} className="baseline-el" />
-          {ranked.map((r, gi) => {
-            const gx = gi * groupW;
-            const series = [{ v: r.planned, color: "var(--chart-1)", key: "planned" }, { v: r.actual, color: "var(--chart-2)", key: "actual" }];
-            const isHover = hover && hover.gi === gi;
-            return (
-              <g key={r.code}>
-                {series.map((s, si) => {
-                  const y = yFor(s.v), h = plotH - y, x = gx + seriesOffset + si * (barW + barGap);
-                  return (
-                    <path key={s.key} d={topRoundedRectPath(x, y, barW, Math.max(h, 0), 4)} fill={s.color} opacity={isHover ? 1 : 0.9}
-                      onMouseEnter={(e) => { const box = wrapRef.current.getBoundingClientRect(); setHover({ gi, x: e.clientX - box.left + 12, y: e.clientY - box.top + 12 }); }}
-                      onMouseMove={(e) => { const box = wrapRef.current.getBoundingClientRect(); setHover(h2 => h2 && { ...h2, x: e.clientX - box.left + 12, y: e.clientY - box.top + 12 }); }}
-                      onMouseLeave={() => setHover(null)} />
-                  );
-                })}
-                <text x={gx + groupW / 2} y={plotH + 16} textAnchor="middle" className="axis-label">{r.code.slice(-4)}</text>
-              </g>
-            );
-          })}
-        </g>
-      </svg>
-      {hover && (
-        <div className="chart-tooltip" style={{ left: hover.x, top: hover.y }}>
-          <div className="t-title">{ranked[hover.gi].code} — {ranked[hover.gi].name}</div>
-          <div className="t-row"><span>งบต้นปี</span><span className="v">฿{fmtCurrency(ranked[hover.gi].planned)}</span></div>
-          <div className="t-row"><span>ใช้จริง</span><span className="v">฿{fmtCurrency(ranked[hover.gi].actual)}</span></div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Donut({ tpl }) {
-  const [hover, setHover] = useState(null);
-  const cats = tpl.cats;
+  const ds = d.datasets[0];
+  const cats = d.labels.map((label, i) => ({ label, value: ds.data[i], color: (ds.backgroundColor && ds.backgroundColor[i]) || "var(--accent)" }));
   const total = cats.reduce((s, c) => s + c.value, 0);
   const r = 62, cx = 92, cy = 92, strokeW = 22, circ = 2 * Math.PI * r, gapPx = 2;
 
@@ -370,28 +275,26 @@ function Donut({ tpl }) {
   const segments = cats.map((c, i) => {
     const frac = total > 0 ? c.value / total : 0;
     const len = Math.max(frac * circ - gapPx, 0);
-    const seg = { len, dashoffset: -cumulative * circ, color: c.color, i, frac };
+    const seg = { len, dashoffset: -cumulative * circ, color: c.color, i };
     cumulative += frac;
     return seg;
   });
 
   return (
     <div className="donut-wrap">
-      <div style={{ position: "relative" }}>
-        <svg viewBox="0 0 184 184" width="184" height="184" role="img" aria-label={`${tpl.title}: รวม ฿${fmtCompact(total)}`}>
-          <g transform={`rotate(-90 ${cx} ${cy})`}>
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--gridline)" strokeWidth={strokeW} />
-            {segments.map(s => (
-              <circle key={s.i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={strokeW}
-                strokeDasharray={`${s.len} ${circ - s.len}`} strokeDashoffset={s.dashoffset}
-                opacity={hover === null || hover === s.i ? 1 : 0.32}
-                onMouseEnter={() => setHover(s.i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer", transition: "opacity 0.15s" }} />
-            ))}
-          </g>
-          <text x={cx} y={cy - 3} textAnchor="middle" className="donut-center" fill="var(--text-primary)">฿{fmtCompact(hover === null ? total : cats[hover].value)}</text>
-          <text x={cx} y={cy + 13} textAnchor="middle" className="donut-center-label axis-label">{hover === null ? "รวมใช้ไป" : cats[hover].label}</text>
-        </svg>
-      </div>
+      <svg viewBox="0 0 184 184" width="184" height="184" role="img" aria-label={`${d.title}: total ${fmtCompact(total)}`}>
+        <g transform={`rotate(-90 ${cx} ${cy})`}>
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--gridline)" strokeWidth={strokeW} />
+          {segments.map(s => (
+            <circle key={s.i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={strokeW}
+              strokeDasharray={`${s.len} ${circ - s.len}`} strokeDashoffset={s.dashoffset}
+              opacity={hover === null || hover === s.i ? 1 : 0.32}
+              onMouseEnter={() => setHover(s.i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer", transition: "opacity 0.15s" }} />
+          ))}
+        </g>
+        <text x={cx} y={cy - 3} textAnchor="middle" className="donut-center" fill="var(--text-primary)">{fmtCompact(hover === null ? total : cats[hover].value)}</text>
+        <text x={cx} y={cy + 13} textAnchor="middle" className="donut-center-label axis-label">{hover === null ? ds.label : cats[hover].label}</text>
+      </svg>
       <div className="legend" style={{ justifyContent: "center", marginTop: 6 }}>
         {cats.map((c, i) => (
           <div className="legend-item" key={c.label} style={{ cursor: "pointer", opacity: hover === null || hover === i ? 1 : 0.5 }} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
@@ -403,50 +306,108 @@ function Donut({ tpl }) {
   );
 }
 
-function StackedBar({ tpl }) {
+function GroupedBar({ d }) {
+  const [hover, setHover] = useState(null);
+  const wrapRef = useRef(null);
+  const width = 900, height = 260;
+  const marginLeft = 50, marginRight = 8, marginTop = 8, marginBottom = 32;
+  const plotW = width - marginLeft - marginRight, plotH = height - marginTop - marginBottom;
+  const n = d.labels.length, seriesN = d.datasets.length;
+  const maxVal = Math.max(1, ...d.datasets.flatMap(s => s.data));
+  const ceiling = niceMax(maxVal, 4);
+  const gridSteps = 4;
+  const groupW = plotW / n, barGap = 2;
+  const barW = Math.min((groupW - (seriesN - 1) * barGap) / seriesN, 24);
+  const seriesOffset = (groupW - (seriesN * barW + (seriesN - 1) * barGap)) / 2;
+  const yFor = v => plotH - (v / ceiling) * plotH;
+
+  return (
+    <div style={{ position: "relative" }} ref={wrapRef}>
+      {seriesN > 1 && (
+        <div className="legend">
+          {d.datasets.map((s, si) => (<div className="legend-item" key={s.label}><span className="swatch" style={{ background: s.backgroundColor || `var(--chart-${si + 1})` }} />{s.label}</div>))}
+        </div>
+      )}
+      <svg viewBox={`0 0 ${width} ${height}`} width="100%">
+        <g transform={`translate(${marginLeft},${marginTop})`}>
+          {Array.from({ length: gridSteps + 1 }).map((_, i) => {
+            const v = (ceiling / gridSteps) * i, y = yFor(v);
+            return (<g key={i}><line x1={0} x2={plotW} y1={y} y2={y} className="gridline-el" /><text x={-8} y={y} textAnchor="end" dominantBaseline="middle" className="axis-label">{fmtCompact(v)}</text></g>);
+          })}
+          <line x1={0} x2={plotW} y1={plotH} y2={plotH} className="baseline-el" />
+          {d.labels.map((label, gi) => {
+            const gx = gi * groupW;
+            const isHover = hover && hover.gi === gi;
+            return (
+              <g key={label}>
+                {d.datasets.map((s, si) => {
+                  const v = s.data[gi] || 0, y = yFor(v), h = plotH - y, x = gx + seriesOffset + si * (barW + barGap);
+                  return (
+                    <path key={s.label} d={topRoundedRectPath(x, y, barW, Math.max(h, 0), 4)} fill={s.backgroundColor || `var(--chart-${si + 1})`} opacity={isHover ? 1 : 0.9}
+                      onMouseEnter={(e) => { const box = wrapRef.current.getBoundingClientRect(); setHover({ gi, x: e.clientX - box.left + 12, y: e.clientY - box.top + 12 }); }}
+                      onMouseMove={(e) => { const box = wrapRef.current.getBoundingClientRect(); setHover(h2 => h2 && { ...h2, x: e.clientX - box.left + 12, y: e.clientY - box.top + 12 }); }}
+                      onMouseLeave={() => setHover(null)} />
+                  );
+                })}
+                <text x={gx + groupW / 2} y={plotH + 16} textAnchor="middle" className="axis-label">{label}</text>
+              </g>
+            );
+          })}
+        </g>
+      </svg>
+      {hover && (
+        <div className="chart-tooltip" style={{ left: hover.x, top: hover.y }}>
+          <div className="t-title">{d.labels[hover.gi]}</div>
+          {d.datasets.map(s => (<div className="t-row" key={s.label}><span>{s.label}</span><span className="v">{fmtValue(s.data[hover.gi], "number")}</span></div>))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StackedBar({ d }) {
   const [hover, setHover] = useState(null);
   const wrapRef = useRef(null);
   const width = 560, height = 220;
   const marginLeft = 46, marginRight = 8, marginTop = 8, marginBottom = 28;
   const plotW = width - marginLeft - marginRight, plotH = height - marginTop - marginBottom;
-  const totals = tpl.labels.map((_, gi) => tpl.datasets.reduce((s, d) => s + d.data[gi], 0));
-  const maxVal = Math.max(1, ...totals);
-  const niceMax = Math.ceil(maxVal / 500000) * 500000;
+  const totals = d.labels.map((_, gi) => d.datasets.reduce((s, ds) => s + (ds.data[gi] || 0), 0));
+  const ceiling = niceMax(Math.max(1, ...totals), 4);
   const gridSteps = 4;
-  const n = tpl.labels.length, groupW = plotW / n, barW = Math.min(groupW * 0.5, 44);
-  const yFor = v => plotH - (v / niceMax) * plotH;
-  const GAP = 1; // 1px each side of the seam -> 2px total surface gap between segments
+  const n = d.labels.length, groupW = plotW / n, barW = Math.min(groupW * 0.5, 44);
+  const yFor = v => plotH - (v / ceiling) * plotH;
+  const GAP = 1; // 1px each side of a seam -> 2px total surface gap between segments
 
   return (
     <div style={{ position: "relative" }} ref={wrapRef}>
       <div className="legend">
-        {tpl.datasets.map(d => (<div className="legend-item" key={d.label}><span className="swatch" style={{ background: d.backgroundColor }} />{d.label}</div>))}
+        {d.datasets.map((s, si) => (<div className="legend-item" key={s.label}><span className="swatch" style={{ background: s.backgroundColor || `var(--chart-${si + 1})` }} />{s.label}</div>))}
       </div>
       <svg viewBox={`0 0 ${width} ${height}`} width="100%">
         <g transform={`translate(${marginLeft},${marginTop})`}>
           {Array.from({ length: gridSteps + 1 }).map((_, i) => {
-            const v = (niceMax / gridSteps) * i, y = yFor(v);
+            const v = (ceiling / gridSteps) * i, y = yFor(v);
             return (<g key={i}><line x1={0} x2={plotW} y1={y} y2={y} className="gridline-el" /><text x={-8} y={y} textAnchor="end" dominantBaseline="middle" className="axis-label">{fmtCompact(v)}</text></g>);
           })}
           <line x1={0} x2={plotW} y1={plotH} y2={plotH} className="baseline-el" />
-          {tpl.labels.map((label, gi) => {
+          {d.labels.map((label, gi) => {
             const gx = gi * groupW + (groupW - barW) / 2;
             let stackTop = 0;
             const isHover = hover === gi;
             return (
               <g key={label}>
-                {tpl.datasets.map((d, si) => {
-                  const v = d.data[gi];
+                {d.datasets.map((ds, si) => {
+                  const v = ds.data[gi] || 0;
                   let yTop = yFor(stackTop + v), yBottom = yFor(stackTop);
                   stackTop += v;
-                  if (si < tpl.datasets.length - 1) yTop += GAP;
+                  if (si < d.datasets.length - 1) yTop += GAP;
                   if (si > 0) yBottom -= GAP;
                   const h = Math.max(yBottom - yTop, 0);
-                  const isTop = si === tpl.datasets.length - 1;
+                  const isTop = si === d.datasets.length - 1;
                   return isTop
-                    ? <path key={d.label} d={topRoundedRectPath(gx, yTop, barW, h, 4)} fill={d.backgroundColor} opacity={isHover ? 1 : 0.92}
+                    ? <path key={ds.label} d={topRoundedRectPath(gx, yTop, barW, h, 4)} fill={ds.backgroundColor || `var(--chart-${si + 1})`} opacity={isHover ? 1 : 0.92}
                         onMouseEnter={() => setHover(gi)} onMouseLeave={() => setHover(null)} />
-                    : <rect key={d.label} x={gx} y={yTop} width={barW} height={h} fill={d.backgroundColor} opacity={isHover ? 1 : 0.92}
+                    : <rect key={ds.label} x={gx} y={yTop} width={barW} height={h} fill={ds.backgroundColor || `var(--chart-${si + 1})`} opacity={isHover ? 1 : 0.92}
                         onMouseEnter={() => setHover(gi)} onMouseLeave={() => setHover(null)} />;
                 })}
                 <text x={gx + barW / 2} y={plotH + 16} textAnchor="middle" className="axis-label">{label}</text>
@@ -457,176 +418,173 @@ function StackedBar({ tpl }) {
       </svg>
       {hover !== null && (
         <div className="chart-tooltip" style={{ left: marginLeft + (hover + 0.5) * groupW - 70, top: 6 }}>
-          <div className="t-title">{tpl.labels[hover]}</div>
-          {tpl.datasets.map(d => (<div className="t-row" key={d.label}><span>{d.label}</span><span className="v">฿{fmtCurrency(d.data[hover])}</span></div>))}
+          <div className="t-title">{d.labels[hover]}</div>
+          {d.datasets.map(ds => (<div className="t-row" key={ds.label}><span>{ds.label}</span><span className="v">{fmtValue(ds.data[hover], "number")}</span></div>))}
         </div>
       )}
     </div>
   );
 }
 
-function AreaChart({ tpl }) {
+// shared by LineChart and AreaChart: a categorical x-axis, N series, and a
+// crosshair+tooltip hit-column per index -- see dataviz skill's interaction spec
+function XYChart({ d, mode }) {
   const [hover, setHover] = useState(null);
   const wrapRef = useRef(null);
-  const points = tpl.points;
-  const width = 900, height = 240;
+  const width = mode === "area" ? 900 : 620, height = 240;
   const marginLeft = 54, marginRight = 10, marginTop = 10, marginBottom = 26;
   const plotW = width - marginLeft - marginRight, plotH = height - marginTop - marginBottom;
-  const maxVal = Math.max(1, ...points.map(p => p.cumulative));
-  const niceMax = Math.ceil(maxVal / 500000) * 500000;
-  const gridSteps = 4;
-  const n = points.length;
+  const n = d.labels.length;
   const xFor = i => (n <= 1 ? 0 : (i / (n - 1)) * plotW);
-  const yFor = v => plotH - (v / niceMax) * plotH;
-  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${xFor(i)},${yFor(p.cumulative)}`).join(" ");
-  const areaPath = linePath + ` L${xFor(n - 1)},${plotH} L0,${plotH} Z`;
+
+  let series;
+  if (mode === "area" && d.stacked) {
+    let running = new Array(n).fill(0);
+    series = d.datasets.map(ds => {
+      const base = running.slice();
+      running = running.map((v, i) => v + (ds.data[i] || 0));
+      return { ds, base, top: running.slice() };
+    });
+  } else {
+    series = d.datasets.map(ds => ({ ds, base: new Array(n).fill(0), top: ds.data }));
+  }
+  const maxVal = Math.max(1, ...series.flatMap(s => s.top));
+  const ceiling = niceMax(maxVal, 4);
+  const gridSteps = 4;
+  const yFor = v => plotH - (v / ceiling) * plotH;
+  const colW = n > 1 ? plotW / (n - 1) : plotW;
 
   return (
     <div style={{ position: "relative" }} ref={wrapRef}>
+      {series.length > 1 && (
+        <div className="legend">
+          {series.map((s, si) => (<div className="legend-item" key={s.ds.label}><span className="swatch" style={{ background: s.ds.borderColor || `var(--chart-${si + 1})` }} />{s.ds.label}</div>))}
+        </div>
+      )}
       <svg viewBox={`0 0 ${width} ${height}`} width="100%">
         <g transform={`translate(${marginLeft},${marginTop})`}>
           {Array.from({ length: gridSteps + 1 }).map((_, i) => {
-            const v = (niceMax / gridSteps) * i, y = yFor(v);
+            const v = (ceiling / gridSteps) * i, y = yFor(v);
             return (<g key={i}><line x1={0} x2={plotW} y1={y} y2={y} className="gridline-el" /><text x={-8} y={y} textAnchor="end" dominantBaseline="middle" className="axis-label">{fmtCompact(v)}</text></g>);
           })}
           <line x1={0} x2={plotW} y1={plotH} y2={plotH} className="baseline-el" />
-          <path d={areaPath} fill="var(--chart-1)" opacity={0.12} />
-          <path d={linePath} fill="none" stroke="var(--chart-1)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-          {/* endpoints: visible >=8px markers with a surface ring, per mark spec */}
-          {[0, n - 1].map(i => (
-            <circle key={"end" + i} cx={xFor(i)} cy={yFor(points[i].cumulative)} r={5} fill="var(--chart-1)" stroke="var(--surface)" strokeWidth={2.5} />
+          {hover !== null && <line x1={xFor(hover)} x2={xFor(hover)} y1={0} y2={plotH} className="crosshair-el" />}
+
+          {series.map((s, si) => {
+            const color = s.ds.borderColor || `var(--chart-${si + 1})`;
+            const topPath = d.labels.map((_, i) => `${i === 0 ? "M" : "L"}${xFor(i)},${yFor(s.top[i])}`).join(" ");
+            const areaPath = mode === "area"
+              ? topPath + " " + d.labels.map((_, i) => `L${xFor(n - 1 - i)},${yFor(s.base[n - 1 - i])}`).join(" ") + " Z"
+              : null;
+            return (
+              <g key={s.ds.label}>
+                {mode === "area" && <path d={areaPath} fill={s.ds.backgroundColor || color} opacity={s.ds.backgroundColor ? 1 : 0.12} />}
+                <path d={topPath} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+                {[0, n - 1].map(i => (
+                  <circle key={"end" + i} cx={xFor(i)} cy={yFor(s.top[i])} r={5} fill={color} stroke="var(--surface)" strokeWidth={2.5} />
+                ))}
+                {hover !== null && <circle cx={xFor(hover)} cy={yFor(s.top[hover])} r={5} fill={color} stroke="var(--surface)" strokeWidth={2.5} />}
+              </g>
+            );
+          })}
+
+          {/* invisible hit column per index, wide enough for an easy hover target */}
+          {d.labels.map((_, i) => (
+            <rect key={i} x={xFor(i) - colW / 2} y={0} width={colW} height={plotH} fill="transparent"
+              onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "crosshair" }} />
           ))}
-          {hover !== null && (
-            <circle cx={xFor(hover)} cy={yFor(points[hover].cumulative)} r={5} fill="var(--chart-1)" stroke="var(--surface)" strokeWidth={2.5} />
-          )}
-          {/* invisible hit targets, one per point, sized for easy hover */}
-          {points.map((p, i) => (
-            <circle key={p.code} cx={xFor(i)} cy={yFor(p.cumulative)} r={8} fill="transparent"
-              onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }} />
-          ))}
-          {points.map((p, i) => (
-            i % Math.ceil(n / 8) === 0 && <text key={p.code} x={xFor(i)} y={plotH + 14} textAnchor="middle" className="axis-label">{p.code.slice(-4)}</text>
+          {d.labels.map((label, i) => (
+            (n <= 10 || i % Math.ceil(n / 8) === 0) && <text key={label} x={xFor(i)} y={plotH + 14} textAnchor="middle" className="axis-label">{label}</text>
           ))}
         </g>
       </svg>
       {hover !== null && (
         <div className="chart-tooltip" style={{ left: Math.min(marginLeft + xFor(hover) - 60, width - 190), top: 6 }}>
-          <div className="t-title">{points[hover].code} — {points[hover].name}</div>
-          <div className="t-row"><span>สะสม</span><span className="v">฿{fmtCurrency(points[hover].cumulative)}</span></div>
+          <div className="t-title">{d.labels[hover]}</div>
+          {series.map(s => (<div className="t-row" key={s.ds.label}><span>{s.ds.label}</span><span className="v">{fmtValue(s.top[hover], "number")}</span></div>))}
         </div>
       )}
     </div>
   );
 }
 
-function OverrunList({ overrun }) {
+function Table({ d }) {
+  const numFormats = new Set(["number", "currency", "percent"]);
   return (
-    <div className="mini-list">
-      {overrun.length === 0 && <div className="mini-row"><span className="mini-name">ไม่มีโครงการเกินแผน</span></div>}
-      {overrun.map((r, i) => (
-        <div className="mini-row" key={r.code}>
-          <span className="mini-rank">{i + 1}</span>
-          <span className="mini-name">{r.name}</span>
-          <span className="badge critical">+{r.pct.toFixed(0)}%</span>
-        </div>
-      ))}
+    <div className="table-scroll">
+      <table>
+        <thead>
+          <tr>{d.columns.map(c => (<th key={c.key} className={numFormats.has(c.format) ? "num" : ""}>{c.label}</th>))}</tr>
+        </thead>
+        <tbody>
+          {d.rows.map((row, ri) => (
+            <tr key={ri}>
+              {d.columns.map(c => (<td key={c.key} className={numFormats.has(c.format) ? "num" : ""}>{fmtValue(row[c.key], c.format)}</td>))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
-function DataTable({ rows }) {
-  const [open, setOpen] = useState(false);
+const BODY_BY_TYPE = {
+  gauge: Gauge, pie: Donut, bar: GroupedBar, stacked_bar: StackedBar,
+  line: ({ d }) => <XYChart d={d} mode="line" />, area: ({ d }) => <XYChart d={d} mode="area" />,
+  table: Table,
+};
+
+function Widget({ widget }) {
+  const d = widget.data;
+  if (d.type === "stat_card") return <StatCard d={d} />;
+
+  const Body = BODY_BY_TYPE[d.type];
+  const sub = widgetSubtitle(d);
   return (
-    <div className="card full">
-      <button className="table-toggle" onClick={() => setOpen(o => !o)} aria-expanded={open}>
-        {open ? "▾" : "▸"} ตารางข้อมูลทั้งหมด ({rows.length} โครงการ) — มุมมองสำรองสำหรับอ่านค่าตรงๆ
-      </button>
-      {open && (
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr><th>รหัส</th><th>โครงการ</th><th>หมวด</th><th className="num">งบต้นปี</th><th className="num">ใช้จริง</th></tr>
-            </thead>
-            <tbody>
-              {rows.map(r => (
-                <tr key={r.code}>
-                  <td>{r.code}</td><td>{r.name}</td><td>{categoryOf(r.code)}</td>
-                  <td className="num">฿{fmtCurrency(r.planned)}</td><td className="num">฿{fmtCurrency(r.actual)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+    <div className="card">
+      <div className="card-head"><h2>{d.title}</h2><span className="schema-tag">{d.type}</span></div>
+      {sub && <p className="card-sub">{sub}</p>}
+      {Body ? <Body d={d} /> : <p className="card-sub">Unknown widget type "{d.type}"</p>}
     </div>
   );
+}
+
+function useConfig(url) {
+  const [state, setState] = useState({ status: "loading", config: null, error: null });
+  useEffect(() => {
+    fetch(url).then(r => {
+      if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+      return r.json();
+    }).then(config => setState({ status: "ready", config, error: null }))
+      .catch(err => setState({ status: "error", config: null, error: String(err) }));
+  }, [url]);
+  return state;
 }
 
 function App() {
-  const { table, gauge, stats, stacked, area, bar, donut, overrun } = useInsights();
+  const { status, config, error } = useConfig(CONFIG_URL);
+  const rows = config ? packRows(config.widgets) : [];
 
   return (
     <div>
       <div className="head">
         <div>
-          <div className="head-title"><h1>ICT Budget Analytics</h1><span className="live-dot" /></div>
-          <p className="head-sub">งบประมาณคณะ ICT ปีงบประมาณ 2569 — ภาพรวมทุกมิติในหน้าเดียว</p>
+          <div className="head-title"><h1>{config ? config.title : "Dashboard Template"}</h1><span className="live-dot" /></div>
+          {config && config.subtitle && <p className="head-sub">{config.subtitle}</p>}
         </div>
-        {table && (
-          <div className="head-meta">
-            <div><span className="badge-live">●</span> ข้อมูล ณ {table.meta ? table.meta.generated_at.slice(0, 10) : "-"}</div>
-            <div>{table.rows.length} โครงการ · 4 หมวดภารกิจ</div>
-          </div>
-        )}
+        <div className="head-meta">
+          {config && config.meta && config.meta.generated_at && <div>ข้อมูล ณ {config.meta.generated_at.slice(0, 10)}</div>}
+          <div><code>{CONFIG_URL}</code></div>
+        </div>
       </div>
 
-      {!table ? (
-        <div className="loading"><span className="spinner" /> กำลังโหลดข้อมูล...</div>
-      ) : (
-        <React.Fragment>
-          <KpiRow stats={stats} />
-
-          <div className="row-2">
-            <div className="card">
-              <div className="card-head"><h2>{gauge.title}</h2><span className="schema-tag">gauge_chart</span></div>
-              <p className="card-sub">โซนสี: ปกติ 0–80% · เฝ้าระวัง 80–100% · เกินแผน &gt;100%</p>
-              <Gauge tpl={gauge} />
-            </div>
-            <div className="card">
-              <div className="card-head"><h2>{donut.title}</h2><span className="schema-tag">pie_chart</span></div>
-              <p className="card-sub">สัดส่วนงบที่ใช้ไปจริง ต่อภารกิจ</p>
-              <Donut tpl={donut} />
-            </div>
-          </div>
-
-          <div className="card full">
-            <div className="card-head"><h2>{bar.title}</h2><span className="schema-tag">bar_chart</span></div>
-            <p className="card-sub">8 โครงการงบสูงสุด</p>
-            <BarChart tpl={bar} />
-          </div>
-
-          <div className="row-2 uneven">
-            <div className="card">
-              <div className="card-head"><h2>{stacked.title}</h2><span className="schema-tag">stacked_bar_chart</span></div>
-              <p className="card-sub">คงเหลือ = max(งบต้นปี − ใช้จริง, 0)</p>
-              <StackedBar tpl={stacked} />
-            </div>
-            <div className="card">
-              <div className="card-head"><h2>โครงการเกินแผนสูงสุด</h2><span className="schema-tag">table</span></div>
-              <p className="card-sub">เรียงตาม % เกินแผน</p>
-              <OverrunList overrun={overrun} />
-            </div>
-          </div>
-
-          <div className="card full">
-            <div className="card-head"><h2>{area.title}</h2><span className="schema-tag">area_chart</span></div>
-            <p className="card-sub">ยอดสะสมของงบที่ใช้ไปจริง {table.rows.length} โครงการ</p>
-            <AreaChart tpl={area} />
-          </div>
-
-          <DataTable rows={table.rows} />
-        </React.Fragment>
-      )}
+      {status === "loading" && <div className="loading"><span className="spinner" /> Loading…</div>}
+      {status === "error" && <div className="error-box">Failed to load config: {error}</div>}
+      {status === "ready" && rows.map((row, ri) => (
+        <div className={`widget-row row-cols-${row.cols}`} key={ri}>
+          {row.items.map((w, wi) => <Widget widget={w} key={wi} />)}
+        </div>
+      ))}
     </div>
   );
 }

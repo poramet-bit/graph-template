@@ -4,7 +4,9 @@ Renders the JSON produced by `ai_layer` (matching a schema in `../../templates/`
 into an actual chart/table on screen, using Chart.js, Recharts, or similar.
 
 Status: not yet implemented for the real pipeline. See `templates/examples/`
-for the JSON shape each renderer must accept.
+for the JSON shape each renderer must accept. `models/dashboard.html` is the
+generic reference renderer — see `../../templates/dashboard_layout.schema.json`
+for the config contract it consumes.
 
 ## Mockups
 
@@ -13,12 +15,19 @@ one. They're plain React via CDN (no build step); open through a local
 server (e.g. `python3 -m http.server` from the repo root), not `file://`,
 since they `fetch()` template JSON by relative path.
 
-### Main dashboard
+### Main dashboard (generic template)
 
-- `models/dashboard.html` — all 6 schema types in one dashboard: `stat_card`
-  ×4, `gauge_chart`, `pie_chart`, `bar_chart`, `stacked_bar_chart`,
-  `area_chart`, plus a collapsible full data table. Dark theme; categorical
-  palette validated with the `dataviz` skill's `validate_palette.js`.
+- `models/dashboard.html` — the reusable dashboard template. It has no
+  ICT-budget-specific code: it fetches a `templates/dashboard_layout.schema.json`
+  config (default `templates/examples/dashboard_layout.example.json`, override
+  with `?config=path/to/your.json`), packs each widget into rows by its
+  declared `size` (`quarter`/`half`/`full`), and dispatches purely on each
+  widget's own `data.type` to a renderer for `stat_card`, `gauge`, `pie`,
+  `bar`, `line`, `area`, `stacked_bar`, or `table` — i.e. every schema in
+  `../../templates/`. Drop in any conformant widget JSON (any domain, any
+  language) and it renders unchanged. Dark theme; categorical colors come
+  from the data itself (each widget's own `backgroundColor`/`borderColor`),
+  falling back to a `dataviz`-validated palette only when a widget omits one.
 
 ### Dual-output flow
 
