@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>ICT Budget Control Center</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --sidebar: #111113;
+    --surface: #131316;
+    --surface-2: #1a1a1e;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-muted: #9a9aa3;
+    --accent: #6c5dd3;
+    --accent-soft: rgba(108,93,211,0.16);
+    --accent-hover: #7c6ee0;
+    --good: #22c55e; --good-soft: rgba(34,197,94,0.14);
+    --warning: #f59e0b; --warning-soft: rgba(245,158,11,0.14);
+    --critical: #ef4444; --critical-soft: rgba(239,68,68,0.14);
+    --info: #2a9d9d; --info-soft: rgba(42,157,157,0.14);
+    --blue: #3b82f6; --blue-soft: rgba(59,130,246,0.14);
+    /* validated categorical steps (dark), reused from flow-bar.html/flow-pie.html */
+    --chart-1: #3987e5; --chart-2: #d95926; --chart-3: #199e70; --chart-4: #c98500;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text-primary); font-size: 13px; line-height: 1.6; }
+  ::selection { background: var(--accent-soft); }
+
+  .shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* ---- sidebar ---- */
+  .sidebar { background: var(--sidebar); border-right: 1px solid var(--border); padding: 18px 14px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 9px; padding: 4px 4px 22px; }
+  .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #4638a0); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 13px; flex: none; }
+  .brand-name { font-weight: 700; font-size: 13.5px; line-height: 1.3; }
+  .brand-sub { font-size: 9px; color: var(--text-muted); letter-spacing: 0.06em; }
+
+  .nav-group { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 10px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; color: var(--text-secondary); font-size: 12.5px; margin-bottom: 1px; position: relative; cursor: pointer; }
+  .nav-item .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.5; flex: none; }
+  .nav-item.active { background: var(--accent-soft); color: #fff; font-weight: 600; }
+  .nav-item.active::before { content: ""; position: absolute; left: -14px; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--accent); }
+
+  .sidebar-footer { margin-top: auto; }
+  .promo-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .promo-icon { font-size: 15px; margin-bottom: 6px; }
+  .promo-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .promo-body { font-size: 10.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+  .promo-btn { width: 100%; padding: 7px; border-radius: 7px; border: 1px solid var(--border-strong); background: var(--surface-2); color: var(--text-secondary); font-size: 11px; font-weight: 600; text-align: center; cursor: pointer; }
+
+  /* ---- topbar ---- */
+  .main { padding: 18px 26px 50px; }
+  .topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
+  .search-wrap { flex: 1; max-width: 420px; position: relative; }
+  .search-wrap input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 9px 46px 9px 34px; color: var(--text-primary); font-size: 12.5px; }
+  .search-wrap input::placeholder { color: var(--text-muted); }
+  .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 12px; }
+  .kbd-hint { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--text-muted); border: 1px solid var(--border-strong); border-radius: 4px; padding: 1px 5px; }
+  .topbar-spacer { flex: 1; }
+  .icon-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 13px; position: relative; flex: none; cursor: pointer; }
+  .icon-btn:hover { border-color: var(--border-strong); }
+  .icon-btn .badge-dot { position: absolute; top: 5px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--critical); border: 1.5px solid var(--surface); }
+  .avatar-wrap { display: flex; align-items: center; gap: 8px; padding-left: 8px; border-left: 1px solid var(--border); margin-left: 4px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex: none; }
+  .avatar-name { font-size: 12px; font-weight: 600; line-height: 1.3; }
+  .avatar-role { font-size: 10px; color: var(--text-muted); }
+
+  /* ---- page header ---- */
+  .page-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 16px; }
+  .page-title-row { display: flex; align-items: center; gap: 8px; }
+  h1 { font-size: 19px; margin: 0; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px var(--good-soft); }
+  .page-sub { font-size: 12.5px; color: var(--text-secondary); margin: 4px 0 0; }
+  .head-actions { display: flex; gap: 8px; flex: none; }
+  .btn { font-size: 12px; font-weight: 600; padding: 8px 13px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-secondary); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ---- KPI row ---- */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 15px; }
+  .kpi-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .kpi-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex: none; }
+  .kpi-label { font-size: 11px; color: var(--text-muted); }
+  .kpi-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .kpi-trend { font-size: 10.5px; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+  .kpi-trend.good { color: var(--good); }
+  .kpi-trend.bad { color: var(--critical); }
+  .kpi-trend-muted { color: var(--text-muted); font-weight: 400; }
+
+  /* ---- filters ---- */
+  .filter-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .filter-row .search-wrap { max-width: 280px; }
+  .dd-btn { font-size: 11.5px; color: var(--text-secondary); background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 7px 11px; display: flex; align-items: center; gap: 5px; }
+  .dd-btn .chev { font-size: 9px; color: var(--text-muted); }
+  .filter-spacer { flex: 1; }
+  .link-btn { font-size: 11.5px; color: var(--text-muted); text-decoration: underline; cursor: pointer; }
+
+  .pill-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .active-pill { font-size: 11px; color: var(--text-secondary); background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; padding: 5px 9px; display: flex; align-items: center; gap: 6px; }
+  .active-pill .x { color: var(--text-muted); cursor: pointer; }
+
+  /* ---- table ---- */
+  .content-grid { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; overflow: hidden; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); font-weight: 500; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  thead th.num { text-align: right; }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 12.5px; white-space: nowrap; }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr { cursor: pointer; position: relative; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody tr.selected { background: var(--accent-soft); }
+  tbody tr.selected::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+  .proj-name { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+  .proj-code { color: var(--text-muted); font-size: 10.5px; }
+
+  .badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 99px; display: inline-block; white-space: nowrap; }
+  .badge.good { color: var(--good); background: var(--good-soft); }
+  .badge.warning { color: var(--warning); background: var(--warning-soft); }
+  .badge.critical { color: var(--critical); background: var(--critical-soft); }
+  .badge.info { color: var(--info); background: var(--info-soft); }
+  .badge.neutral { color: var(--text-secondary); background: var(--surface-2); border: 1px solid var(--border); }
+
+  .table-footer { padding: 10px 14px; font-size: 11px; color: var(--text-muted); }
+
+  /* ---- dashboard charts ---- */
+  .dash-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px; margin-bottom: 12px; align-items: start; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 16px 16px 12px; }
+  .chart-card h3 { font-size: 12.5px; margin: 0 0 2px; }
+  .chart-card .chart-sub { font-size: 10.5px; color: var(--text-muted); margin: 0 0 12px; }
+  .legend { display: flex; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--text-secondary); }
+  .swatch { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+  .swatch.round { border-radius: 50%; }
+  .axis-label { fill: var(--text-muted); font-size: 9.5px; }
+  .gridline-el { stroke: var(--border); stroke-width: 1; }
+  .baseline-el { stroke: var(--border-strong); stroke-width: 1; }
+  .chart-tooltip {
+    position: absolute; pointer-events: none; background: var(--surface-2); border: 1px solid var(--border-strong);
+    border-radius: 6px; padding: 7px 9px; font-size: 11px; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    max-width: 220px; line-height: 1.5; z-index: 10;
+  }
+  .chart-tooltip .t-title { font-weight: 600; margin-bottom: 2px; color: var(--text-primary); }
+  .chart-tooltip .t-row { display: flex; justify-content: space-between; gap: 10px; color: var(--text-secondary); }
+  .donut-wrap { display: flex; flex-direction: column; align-items: center; }
+  .donut-center { font-size: 18px; font-weight: 700; }
+  .donut-center-label { font-size: 10px; color: var(--text-muted); }
+  .mini-list { display: flex; flex-direction: column; }
+  .mini-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; gap: 8px; }
+  .mini-row:last-child { border-bottom: none; }
+  .mini-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); }
+
+  /* ---- detail panel ---- */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 18px; position: sticky; top: 18px; }
+  .panel-empty { text-align: center; padding: 50px 10px; color: var(--text-muted); font-size: 12px; }
+  .panel-empty .big-icon { font-size: 26px; margin-bottom: 10px; opacity: 0.5; }
+
+  .panel-head-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
+  .panel-close { border: none; background: none; color: var(--text-muted); font-size: 16px; cursor: default; }
+  .panel-title { font-size: 14.5px; font-weight: 700; line-height: 1.4; margin: 8px 0 3px; }
+  .panel-meta { font-size: 10.5px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+  .tab { font-size: 11px; padding: 7px 4px; color: var(--text-muted); border-bottom: 2px solid transparent; margin-right: 12px; cursor: pointer; background: none; border-left: none; border-right: none; border-top: none; font-family: inherit; }
+  .tab.active { color: var(--text-primary); border-bottom-color: var(--accent); font-weight: 600; }
+  .raw-data { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 10.5px; color: var(--text-secondary); overflow-x: auto; white-space: pre; font-family: ui-monospace, SFMono-Regular, monospace; max-height: 240px; margin: 0; }
+  .empty-tab { color: var(--text-muted); font-size: 12px; text-align: center; padding: 30px 10px; }
+
+  .section-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin: 0 0 6px; }
+  .narrative { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+
+  .kv { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; gap: 10px; }
+  .kv:last-child { border-bottom: none; }
+  .kv-label { color: var(--text-muted); }
+  .kv-value { font-weight: 600; text-align: right; }
+
+  .qa-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 16px 0 14px; }
+  .qa-btn { font-size: 10px; padding: 8px 4px; text-align: center; border: 1px solid var(--border); border-radius: 7px; color: var(--text-secondary); background: var(--surface-2); cursor: pointer; font-family: inherit; }
+  .qa-btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+  .qa-btn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  .panel-primary { width: 100%; padding: 10px; border-radius: 8px; background: var(--accent); color: #fff; font-size: 12.5px; font-weight: 600; border: none; text-align: center; margin-bottom: 8px; cursor: pointer; }
+  .panel-secondary { display: block; width: 100%; text-align: center; font-size: 11.5px; color: var(--text-muted); background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; }
+
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--surface-2); border: 1px solid var(--border-strong); color: var(--text-primary); font-size: 12.5px; padding: 10px 18px; border-radius: 9px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 50; animation: toast-in 0.18s ease; }
+  @keyframes toast-in { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+  @media (max-width: 1080px) {
+    .shell { grid-template-columns: 76px 1fr; }
+    .sidebar { padding: 18px 10px; align-items: center; }
+    .brand-name, .brand-sub, .nav-group, .nav-label, .promo-card { display: none; }
+    .brand { padding: 4px 0 22px; justify-content: center; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .nav-item.active::before { left: -10px; }
+    .content-grid { grid-template-columns: 1fr; }
+    .dash-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 720px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 16px 16px 40px; }
+    .search-wrap { max-width: none; }
+    .page-head { flex-direction: column; align-items: stretch; }
+    .head-actions { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/plain" id="app-src">
+const { useState, useMemo } = React;
+
+const TABLE_URL = "../../../templates/examples/ict_budget_2569.table.json";
+
+const CATEGORY_MAP = [
+  { prefix: "694101", label: "ภารกิจทั่วไป" },
+  { prefix: "694103", label: "ศิลปวัฒนธรรม" },
+  { prefix: "694104", label: "วิจัย" },
+  { prefix: "694105", label: "บริการวิชาการ" },
+];
+function categoryOf(code) { return (CATEGORY_MAP.find(c => code.startsWith(c.prefix)) || { label: "อื่นๆ" }).label; }
+
+function fmtCurrency(n) { return new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(n); }
+function fmtCompact(n) {
+  if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (Math.abs(n) >= 1_000) return Math.round(n / 1_000) + "k";
+  return String(n);
+}
+
+function statusOf(r) {
+  if (r.planned === 0) return { key: "warning", text: "โอนงบเพิ่ม" };
+  if (r.actual > r.planned) return { key: "critical", text: "เกินแผน" };
+  if (r.actual === 0) return { key: "warning", text: "ยังไม่เบิก" };
+  return { key: "good", text: "ปกติ" };
+}
+function riskOf(r) {
+  if (r.planned > 0 && r.actual > r.planned * 1.5) return { key: "critical", text: "สูง" };
+  if (r.planned > 0 && r.actual > r.planned) return { key: "warning", text: "ปานกลาง" };
+  if (r.planned === 0 && r.actual > 0) return { key: "warning", text: "ต้องตรวจสอบ" };
+  return { key: "good", text: "ต่ำ" };
+}
+
+function useTable() {
+  const [table, setTable] = useState(null);
+  React.useEffect(() => { fetch(TABLE_URL).then(r => r.json()).then(setTable); }, []);
+  return table;
+}
+
+function Sidebar({ view, setView, notify }) {
+  const soon = (label) => notify(`${label} — ยังไม่เปิดใช้งานใน mockup นี้`);
+  return (
+    <div className="sidebar">
+      <div className="brand">
+        <div className="brand-mark">IC</div>
+        <div>
+          <div className="brand-name">ICT BUDGET</div>
+          <div className="brand-sub">CONTROL CENTER</div>
+        </div>
+      </div>
+      <div className="nav-group">ภาพรวม</div>
+      <div className={"nav-item" + (view === "dashboard" ? " active" : "")} onClick={() => setView("dashboard")} title="Dashboard"><span className="dot" /><span className="nav-label">Dashboard</span></div>
+      <div className={"nav-item" + (view === "projects" ? " active" : "")} onClick={() => setView("projects")} title="Projects"><span className="dot" /><span className="nav-label">Projects</span></div>
+      <div className="nav-item" title="Departments" onClick={() => soon("Departments")}><span className="dot" /><span className="nav-label">Departments</span></div>
+      <div className="nav-group">ระบบ</div>
+      <div className="nav-item" title="Audit Logs" onClick={() => soon("Audit Logs")}><span className="dot" /><span className="nav-label">Audit Logs</span></div>
+      <div className="nav-item" title="Settings" onClick={() => soon("Settings")}><span className="dot" /><span className="nav-label">Settings</span></div>
+
+      <div className="sidebar-footer">
+        <div className="promo-card">
+          <div className="promo-icon">🔌</div>
+          <div className="promo-title">ยังไม่เชื่อมต่อ MCP Server</div>
+          <div className="promo-body">หน้านี้เป็น mockup ข้อมูลจริงจาก templates/examples/ — ai_layer และ mcp_server ยังไม่ implement</div>
+          <div className="promo-btn" onClick={() => soon("เชื่อมต่อ MCP Server")}>เชื่อมต่อ (เร็วๆ นี้)</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Topbar({ q, onSearch, notify }) {
+  return (
+    <div className="topbar">
+      <div className="search-wrap">
+        <span className="search-icon">🔍</span>
+        <input
+          placeholder="ค้นหาโครงการ, รหัส, หมวด..."
+          value={q}
+          onChange={e => onSearch(e.target.value)}
+          aria-label="ค้นหาโครงการ"
+        />
+        <span className="kbd-hint">⌘K</span>
+      </div>
+      <div className="topbar-spacer" />
+      <div className="icon-btn" role="button" tabIndex={0} aria-label="สลับธีมสว่าง/มืด (ยังไม่เปิดใช้งาน)" onClick={() => notify("สลับธีม — ยังไม่เปิดใช้งานใน mockup นี้")}>☀️</div>
+      <div className="icon-btn" role="button" tabIndex={0} aria-label="การแจ้งเตือน มี 1 รายการใหม่" onClick={() => notify("ยังไม่มีระบบแจ้งเตือนจริงใน mockup นี้")}>🔔<span className="badge-dot" /></div>
+      <div className="avatar-wrap">
+        <div className="avatar">พร</div>
+        <div>
+          <div className="avatar-name">Poramet</div>
+          <div className="avatar-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KpiRow({ table }) {
+  const totalPlanned = table.rows.reduce((s, r) => s + r.planned, 0);
+  const totalActual = table.rows.reduce((s, r) => s + r.actual, 0);
+  const overBudget = table.rows.filter(r => r.planned > 0 && r.actual > r.planned).length;
+  const util = totalPlanned > 0 ? (totalActual / totalPlanned) * 100 : 0;
+
+  const cards = [
+    { icon: "📁", bg: "var(--accent-soft)", color: "var(--accent)", label: "โครงการทั้งหมด", value: table.rows.length, trend: `${CATEGORY_MAP.length} หมวดภารกิจ`, cls: "" },
+    { icon: "💰", bg: "var(--blue-soft)", color: "var(--blue)", label: "งบประมาณต้นปีรวม", value: "฿" + fmtCurrency(totalPlanned), trend: "ต้นปีงบประมาณ 2569", cls: "" },
+    { icon: "📊", bg: "var(--info-soft)", color: "var(--info)", label: "งบที่ใช้ไปรวม", value: "฿" + fmtCurrency(totalActual), trend: util.toFixed(1) + "% ของแผน", cls: util > 100 ? "bad" : "good" },
+    { icon: "⚠️", bg: "var(--critical-soft)", color: "var(--critical)", label: "โครงการเกินแผน", value: overBudget, trend: overBudget > 0 ? "ต้องติดตาม" : "ปกติทั้งหมด", cls: overBudget > 0 ? "bad" : "good" },
+  ];
+
+  return (
+    <div className="kpi-row">
+      {cards.map(c => (
+        <div className="kpi-card" key={c.label}>
+          <div className="kpi-top">
+            <div>
+              <div className="kpi-label">{c.label}</div>
+              <div className="kpi-value">{c.value}</div>
+            </div>
+            <div className="kpi-icon" style={{ background: c.bg, color: c.color }}>{c.icon}</div>
+          </div>
+          <div className={"kpi-trend " + c.cls}>{c.trend}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const STATUS_FILTERS = [
+  { key: "all", label: "สถานะทั้งหมด", test: () => true },
+  { key: "critical", label: "เกินแผน", test: r => statusOf(r).key === "critical" },
+  { key: "warning", label: "ต้องตรวจสอบ", test: r => statusOf(r).key === "warning" },
+  { key: "good", label: "ปกติ", test: r => statusOf(r).key === "good" },
+];
+
+function DetailPanel({ row, meta, onClose, notify, exportCsv, watched, onToggleWatch, onGoDashboard }) {
+  const [tab, setTab] = useState("overview");
+  React.useEffect(() => { setTab("overview"); }, [row && row.code]);
+
+  if (!row) {
+    return (
+      <div className="panel">
+        <div className="panel-empty">
+          <div className="big-icon">🗂️</div>
+          เลือกโครงการในตารางด้านซ้าย<br />เพื่อดูรายละเอียดที่นี่
+        </div>
+      </div>
+    );
+  }
+  const s = statusOf(row), risk = riskOf(row);
+  const diff = row.actual - row.planned;
+  const util = row.planned > 0 ? (row.actual / row.planned) * 100 : null;
+  const isWatched = watched.has(row.code);
+
+  return (
+    <div className="panel">
+      <div className="panel-head-row">
+        <span className={"badge " + s.key}>{s.text}</span>
+        <button className="panel-close" onClick={onClose} aria-label="ปิดแผงรายละเอียด">×</button>
+      </div>
+      <div className="panel-title">{row.name}</div>
+      <div className="panel-meta">{row.code} · {categoryOf(row.code)}</div>
+
+      <div className="tabs" role="tablist">
+        <button className={"tab" + (tab === "overview" ? " active" : "")} role="tab" aria-selected={tab === "overview"} onClick={() => setTab("overview")}>Overview</button>
+        <button className={"tab" + (tab === "history" ? " active" : "")} role="tab" aria-selected={tab === "history"} onClick={() => setTab("history")}>ประวัติ</button>
+        <button className={"tab" + (tab === "raw" ? " active" : "")} role="tab" aria-selected={tab === "raw"} onClick={() => setTab("raw")}>Raw Data</button>
+      </div>
+
+      {tab === "overview" && (
+        <React.Fragment>
+          <div className="section-label">เกิดอะไรขึ้น?</div>
+          <div className="narrative">
+            โครงการ "{row.name}" ได้รับจัดสรรงบประมาณต้นปี ฿{fmtCurrency(row.planned)}
+            {" "}และเบิกใช้ไปแล้ว ฿{fmtCurrency(row.actual)}
+            {util !== null ? ` คิดเป็น ${util.toFixed(1)}% ของงบต้นปี` : " โดยไม่มีงบต้นปีตั้งไว้ (น่าจะได้รับโอนงบเพิ่มระหว่างปี)"}.
+          </div>
+
+          <div className="section-label">รายละเอียด</div>
+          <div className="kv"><span className="kv-label">รหัสโครงการ</span><span className="kv-value">{row.code}</span></div>
+          <div className="kv"><span className="kv-label">หมวดภารกิจ</span><span className="kv-value">{categoryOf(row.code)}</span></div>
+          <div className="kv"><span className="kv-label">งบประมาณต้นปี</span><span className="kv-value">฿{fmtCurrency(row.planned)}</span></div>
+          <div className="kv"><span className="kv-label">งบที่ใช้ไป</span><span className="kv-value">฿{fmtCurrency(row.actual)}</span></div>
+          <div className="kv"><span className="kv-label">ผลต่าง</span><span className="kv-value" style={{ color: diff > 0 ? "var(--critical)" : "var(--good)" }}>{diff > 0 ? "+" : ""}฿{fmtCurrency(diff)}</span></div>
+          <div className="kv"><span className="kv-label">ระดับความเสี่ยง</span><span className={"badge " + risk.key}>{risk.text}</span></div>
+          <div className="kv"><span className="kv-label">ข้อมูล ณ วันที่</span><span className="kv-value">{meta ? meta.generated_at.slice(0, 10) : "-"}</span></div>
+        </React.Fragment>
+      )}
+
+      {tab === "history" && (
+        <div className="empty-tab">ยังไม่มีระบบบันทึกประวัติการเปลี่ยนแปลงใน mockup นี้ — ต้องรอ mcp_server เชื่อมต่อฐานข้อมูลจริงก่อน</div>
+      )}
+
+      {tab === "raw" && (
+        <pre className="raw-data">{JSON.stringify(row, null, 2)}</pre>
+      )}
+
+      <div className="qa-row">
+        <button className="qa-btn" onClick={() => notify("แถวนี้ไฮไลต์อยู่ในตารางด้านซ้ายแล้ว")}>ดูในตาราง</button>
+        <button className={"qa-btn" + (isWatched ? " on" : "")} onClick={() => onToggleWatch(row.code)}>{isWatched ? "✓ ติดตามอยู่" : "ตั้งค่าติดตาม"}</button>
+        <button className="qa-btn" onClick={() => exportCsv([row], `${row.code}.csv`)}>ส่งออก</button>
+      </div>
+
+      <button className="panel-primary" onClick={() => notify("รายงานเชิงลึกรายโครงการยังไม่เปิดใช้งานใน mockup นี้")}>ตรวจสอบเพิ่มเติม</button>
+      <button className="panel-secondary" onClick={onGoDashboard}>ดูงบประมาณคณะทั้งหมด →</button>
+    </div>
+  );
+}
+
+function BarChart({ rows }) {
+  const [hover, setHover] = useState(null);
+  const wrapRef = React.useRef(null);
+  const ranked = [...rows].sort((a, b) => (b.planned + b.actual) - (a.planned + a.actual)).slice(0, 8);
+  const width = 560, height = 240;
+  const marginLeft = 46, marginRight = 8, marginTop = 8, marginBottom = 32;
+  const plotW = width - marginLeft - marginRight, plotH = height - marginTop - marginBottom;
+  const maxVal = Math.max(1, ...ranked.flatMap(r => [r.planned, r.actual]));
+  const niceMax = Math.ceil(maxVal / 200000) * 200000;
+  const gridSteps = 4;
+  const n = ranked.length, groupW = plotW / n;
+  const barGap = 2, groupGap = 8;
+  const barW = (groupW - groupGap - barGap) / 2;
+  const yFor = v => plotH - (v / niceMax) * plotH;
+
+  return (
+    <div style={{ position: "relative" }} ref={wrapRef}>
+      <div className="legend">
+        <div className="legend-item"><span className="swatch" style={{ background: "var(--chart-1)" }} />งบประมาณต้นปี</div>
+        <div className="legend-item"><span className="swatch" style={{ background: "var(--chart-2)" }} />งบที่ใช้ไป</div>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} width="100%">
+        <g transform={`translate(${marginLeft},${marginTop})`}>
+          {Array.from({ length: gridSteps + 1 }).map((_, i) => {
+            const v = (niceMax / gridSteps) * i, y = yFor(v);
+            return (<g key={i}><line x1={0} x2={plotW} y1={y} y2={y} className="gridline-el" /><text x={-8} y={y} textAnchor="end" dominantBaseline="middle" className="axis-label">{fmtCompact(v)}</text></g>);
+          })}
+          <line x1={0} x2={plotW} y1={plotH} y2={plotH} className="baseline-el" />
+          {ranked.map((r, gi) => {
+            const gx = gi * groupW;
+            const series = [{ v: r.planned, color: "var(--chart-1)", key: "planned" }, { v: r.actual, color: "var(--chart-2)", key: "actual" }];
+            return (
+              <g key={r.code}>
+                {series.map((s, si) => {
+                  const y = yFor(s.v), h = plotH - y, x = gx + si * (barW + barGap);
+                  const isHover = hover && hover.gi === gi;
+                  return (
+                    <rect key={s.key} x={x} y={y} width={barW} height={Math.max(h, 0)} rx={3} fill={s.color} opacity={isHover ? 1 : 0.9}
+                      onMouseEnter={(e) => { const box = wrapRef.current.getBoundingClientRect(); setHover({ gi, x: e.clientX - box.left + 12, y: e.clientY - box.top + 12 }); }}
+                      onMouseMove={(e) => { const box = wrapRef.current.getBoundingClientRect(); setHover(h2 => h2 && { ...h2, x: e.clientX - box.left + 12, y: e.clientY - box.top + 12 }); }}
+                      onMouseLeave={() => setHover(null)} />
+                  );
+                })}
+                <text x={gx + groupW / 2 - groupGap / 2} y={plotH + 16} textAnchor="middle" className="axis-label">{r.code.slice(-4)}</text>
+              </g>
+            );
+          })}
+        </g>
+      </svg>
+      {hover && (
+        <div className="chart-tooltip" style={{ left: hover.x, top: hover.y }}>
+          <div className="t-title">{ranked[hover.gi].code} — {ranked[hover.gi].name}</div>
+          <div className="t-row"><span>งบต้นปี</span><span>฿{fmtCurrency(ranked[hover.gi].planned)}</span></div>
+          <div className="t-row"><span>ใช้จริง</span><span>฿{fmtCurrency(ranked[hover.gi].actual)}</span></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Donut({ rows }) {
+  const [hover, setHover] = useState(null);
+  const cats = CATEGORY_MAP.map((c, i) => ({
+    label: c.label,
+    color: ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"][i],
+    value: rows.filter(r => r.code.startsWith(c.prefix)).reduce((s, r) => s + r.actual, 0),
+  }));
+  const total = cats.reduce((s, c) => s + c.value, 0);
+  const r = 58, cx = 84, cy = 84, strokeW = 20, circ = 2 * Math.PI * r, gapPx = 3;
+
+  let cumulative = 0;
+  const segments = cats.map((c, i) => {
+    const frac = total > 0 ? c.value / total : 0;
+    const len = Math.max(frac * circ - gapPx, 0);
+    const seg = { len, dashoffset: -cumulative * circ, color: c.color, i };
+    cumulative += frac;
+    return seg;
+  });
+
+  return (
+    <div className="donut-wrap">
+      <svg viewBox="0 0 168 168" width="168" height="168">
+        <g transform={`rotate(-90 ${cx} ${cy})`}>
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--border)" strokeWidth={strokeW} />
+          {segments.map(s => (
+            <circle key={s.i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={strokeW}
+              strokeDasharray={`${s.len} ${circ - s.len}`} strokeDashoffset={s.dashoffset}
+              opacity={hover === null || hover === s.i ? 1 : 0.35}
+              onMouseEnter={() => setHover(s.i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }} />
+          ))}
+        </g>
+        <text x={cx} y={cy - 3} textAnchor="middle" className="donut-center" fill="var(--text-primary)">฿{fmtCompact(total)}</text>
+        <text x={cx} y={cy + 13} textAnchor="middle" className="donut-center-label" fill="var(--text-muted)">รวมใช้ไป</text>
+      </svg>
+      <div className="legend" style={{ justifyContent: "center", marginTop: 8 }}>
+        {cats.map((c, i) => (
+          <div className="legend-item" key={c.label}><span className="swatch round" style={{ background: c.color }} />{c.label} ({total > 0 ? (c.value / total * 100).toFixed(0) : 0}%)</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DashboardView({ table }) {
+  const overrun = table.rows
+    .filter(r => r.planned > 0 && r.actual > r.planned)
+    .map(r => ({ ...r, pct: ((r.actual - r.planned) / r.planned) * 100 }))
+    .sort((a, b) => b.pct - a.pct)
+    .slice(0, 5);
+
+  return (
+    <React.Fragment>
+      <KpiRow table={table} />
+      <div className="dash-grid">
+        <div className="chart-card">
+          <h3>งบต้นปี vs ใช้จริง</h3>
+          <p className="chart-sub">8 โครงการงบสูงสุด</p>
+          <BarChart rows={table.rows} />
+        </div>
+        <div className="chart-card">
+          <h3>งบตามภารกิจ</h3>
+          <p className="chart-sub">สัดส่วนงบที่ใช้ไปจริง</p>
+          <Donut rows={table.rows} />
+        </div>
+      </div>
+      <div className="chart-card">
+        <h3>โครงการเกินแผนสูงสุด</h3>
+        <p className="chart-sub">เรียงตาม % เกินแผน</p>
+        <div className="mini-list">
+          {overrun.length === 0 && <div className="mini-row"><span className="mini-name">ไม่มีโครงการเกินแผน</span></div>}
+          {overrun.map(r => (
+            <div className="mini-row" key={r.code}>
+              <span className="mini-name">{r.name}</span>
+              <span className="badge critical">+{r.pct.toFixed(0)}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </React.Fragment>
+  );
+}
+
+function App() {
+  const table = useTable();
+  const [view, setView] = useState("dashboard");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [q, setQ] = useState("");
+  const [selected, setSelected] = useState(null);
+  const [watched, setWatched] = useState(() => new Set());
+  const onToggleWatch = (code) => {
+    setWatched(prev => {
+      const next = new Set(prev);
+      next.has(code) ? next.delete(code) : next.add(code);
+      return next;
+    });
+  };
+
+  const rows = useMemo(() => {
+    if (!table) return [];
+    const f = STATUS_FILTERS.find(f => f.key === statusFilter);
+    return table.rows.filter(f.test).filter(r =>
+      !q || r.name.toLowerCase().includes(q.toLowerCase()) || r.code.includes(q)
+    );
+  }, [table, statusFilter, q]);
+
+  const [toast, setToast] = useState(null);
+  const toastTimer = React.useRef(null);
+  const notify = (msg) => {
+    clearTimeout(toastTimer.current);
+    setToast(msg);
+    toastTimer.current = setTimeout(() => setToast(null), 2400);
+  };
+
+  const onSearch = (val) => {
+    setQ(val);
+    if (val) { setView("projects"); setStatusFilter("all"); }
+  };
+
+  const exportCsv = (exportRows, filename) => {
+    const header = ["code", "name", "planned", "actual", "category", "status"];
+    const lines = [header.join(",")].concat(
+      exportRows.map(r => [
+        r.code, `"${r.name.replace(/"/g, '""')}"`, r.planned, r.actual, categoryOf(r.code), statusOf(r).text,
+      ].join(","))
+    );
+    const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    notify(`ส่งออก ${exportRows.length} แถวเป็น ${filename} แล้ว`);
+  };
+
+  if (!table) {
+    return (
+      <div className="shell">
+        <Sidebar view={view} setView={setView} notify={notify} />
+        <div className="main"><Topbar q={q} onSearch={onSearch} notify={notify} /><div style={{ padding: 60, textAlign: "center", color: "var(--text-muted)" }}>กำลังโหลดข้อมูล...</div></div>
+      </div>
+    );
+  }
+
+  const selectedRow = table.rows.find(r => r.code === selected);
+  const titles = {
+    dashboard: { h1: "Dashboard", sub: `งบประมาณคณะ ICT ปีงบประมาณ 2569 — ภาพรวม ${table.rows.length} โครงการ` },
+    projects: { h1: "Projects", sub: `งบประมาณคณะ ICT ปีงบประมาณ 2569 — ${table.rows.length} โครงการ` },
+  };
+
+  const exportRows = view === "projects" ? rows : table.rows;
+  const exportName = view === "projects" ? "ict_budget_2569_projects.csv" : "ict_budget_2569_all.csv";
+
+  return (
+    <div className="shell">
+      <Sidebar view={view} setView={setView} notify={notify} />
+      <div className="main">
+        <Topbar q={q} onSearch={onSearch} notify={notify} />
+
+        <div className="page-head">
+          <div>
+            <div className="page-title-row"><h1>{titles[view].h1}</h1><span className="live-dot" /></div>
+            <p className="page-sub">{titles[view].sub}</p>
+          </div>
+          <div className="head-actions">
+            <button className="btn" onClick={() => exportCsv(exportRows, exportName)}>Export ⌄</button>
+            <button className="btn" onClick={() => notify("Saved Views — ยังไม่เปิดใช้งานใน mockup นี้")}>Saved Views ⌄</button>
+            <button className="btn primary" onClick={() => notify("ระบบแจ้งเตือนยังไม่เปิดใช้งานใน mockup นี้")}>+ เพิ่มการแจ้งเตือน</button>
+          </div>
+        </div>
+
+        {view === "dashboard" ? (
+          <DashboardView table={table} />
+        ) : (
+          <React.Fragment>
+            <KpiRow table={table} />
+
+            <div className="filter-row">
+              <div className="search-wrap">
+                <span className="search-icon">🔍</span>
+                <input placeholder="ค้นหาชื่อโครงการหรือรหัส..." value={q} onChange={e => setQ(e.target.value)} />
+              </div>
+              {STATUS_FILTERS.map(f => (
+                <button key={f.key} className="dd-btn" style={f.key === statusFilter ? { color: "var(--text-primary)", borderColor: "var(--border-strong)" } : {}} onClick={() => setStatusFilter(f.key)}>
+                  {f.label} <span className="chev">▾</span>
+                </button>
+              ))}
+              <div className="filter-spacer" />
+              <span className="link-btn" onClick={() => { setStatusFilter("all"); setQ(""); }}>ล้างตัวกรอง</span>
+            </div>
+
+            {(statusFilter !== "all" || q) && (
+              <div className="pill-row">
+                {statusFilter !== "all" && <span className="active-pill">{STATUS_FILTERS.find(f => f.key === statusFilter).label} <span className="x" onClick={() => setStatusFilter("all")}>×</span></span>}
+                {q && <span className="active-pill">ค้นหา: "{q}" <span className="x" onClick={() => setQ("")}>×</span></span>}
+              </div>
+            )}
+
+            <div className="content-grid">
+              <div className="table-card">
+                <div className="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>โครงการ</th>
+                        <th>หมวด</th>
+                        <th className="num">งบต้นปี</th>
+                        <th className="num">ใช้จริง</th>
+                        <th>สถานะ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map(r => (
+                        <tr key={r.code} className={selected === r.code ? "selected" : ""} onClick={() => setSelected(r.code)}>
+                          <td><span className="proj-name">{r.name}</span><span className="proj-code">{r.code}</span></td>
+                          <td><span className="badge neutral">{categoryOf(r.code)}</span></td>
+                          <td className="num">{fmtCurrency(r.planned)}</td>
+                          <td className="num">{fmtCurrency(r.actual)}</td>
+                          <td><span className={"badge " + statusOf(r).key}>{statusOf(r).text}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {rows.length === 0 && <div className="empty-tab">ไม่พบโครงการที่ตรงกับตัวกรอง — ลอง "ล้างตัวกรอง"</div>}
+                <div className="table-footer">แสดง {rows.length} จาก {table.rows.length} โครงการ</div>
+              </div>
+
+              <DetailPanel
+                row={selectedRow}
+                meta={table.meta}
+                onClose={() => setSelected(null)}
+                notify={notify}
+                exportCsv={exportCsv}
+                watched={watched}
+                onToggleWatch={onToggleWatch}
+                onGoDashboard={() => setView("dashboard")}
+              />
+            </div>
+          </React.Fragment>
+        )}
+      </div>
+      {toast && <div className="toast" role="status">{toast}</div>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+<script>
+  const src = document.getElementById("app-src").textContent;
+  const { code } = Babel.transform(src, { presets: [["react", { runtime: "classic" }]] });
+  (0, eval)(code);
+</script>
+</body>
+</html>
