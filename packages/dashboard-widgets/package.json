@@ -1,5 +1,5 @@
 {
-  "name": "@poramet/dashboard-widgets",
+  "name": "@poramet-bit/dashboard-widgets",
   "version": "0.1.0",
   "description": "Config-driven React dashboard widgets (stat card, gauge, donut, bar, stacked bar, line/area, table) extracted from the graph-template presentation module.",
   "license": "MIT",

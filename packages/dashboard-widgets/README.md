@@ -1,4 +1,4 @@
-# @poramet/dashboard-widgets
+# @poramet-bit/dashboard-widgets
 
 Config-driven React dashboard widgets, extracted from
 `modules/presentation/models/dashboard.html`. Renders the same
@@ -8,14 +8,14 @@ as real npm-installable components.
 ## Install
 
 ```bash
-npm install @poramet/dashboard-widgets react react-dom
+npm install @poramet-bit/dashboard-widgets react react-dom
 ```
 
 ## Usage
 
 ```jsx
-import { DashboardGrid } from "@poramet/dashboard-widgets";
-import "@poramet/dashboard-widgets/styles.css";
+import { DashboardGrid } from "@poramet-bit/dashboard-widgets";
+import "@poramet-bit/dashboard-widgets/styles.css";
 
 function App({ config }) {
   return (
