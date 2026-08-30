@@ -1,0 +1,361 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --surface-1: #1a1a19;
+  --page: #0d0d0d;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #b0ada6;
+  --gridline: #2c2c2a;
+  --baseline: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --series-1: #3987e5; /* blue   — งบประมาณต้นปี / Output 1 accent */
+  --series-2: #d95926; /* orange — งบที่ใช้ไป */
+  --series-3: #199e70; /* teal   */
+  --series-4: #c98500; /* amber  */
+  --brand: #9085e9;    /* violet — Output 2 / subagent accent */
+  --good: #0ca30c;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  background: var(--page);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* 5-stage stepper */
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  margin-bottom: 22px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 10px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  position: relative;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.step::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background: var(--gridline);
+  z-index: 0;
+}
+
+.step:first-child::before {
+  display: none;
+}
+
+.step.done::before,
+.step.active::before {
+  background: var(--brand);
+}
+
+.step-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gridline);
+  border: 2px solid var(--surface-1);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step.done .step-dot {
+  background: var(--brand);
+}
+
+.step.active .step-dot {
+  background: var(--series-2);
+  animation: pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% { opacity: 0.4; }
+}
+
+.step-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.step.done .step-label,
+.step.active .step-label {
+  color: var(--text-primary);
+}
+
+.step-sub {
+  font-size: 9.5px;
+}
+
+/* Output Grid & Panels */
+.output-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .output-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.panel-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #fff;
+  flex: none;
+  font-weight: 700;
+}
+
+.panel-title {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.panel-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0 0 14px 28px;
+}
+
+.stream-box {
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  min-height: 160px;
+  color: var(--text-primary);
+}
+
+.cursor {
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  background: var(--series-1);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.9s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Subagent Pipeline Rows */
+.pipeline-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.pipe-box {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  background: var(--page);
+  opacity: 0.45;
+  transition: opacity 0.25s, border-color 0.25s;
+}
+
+.pipe-box.lit {
+  opacity: 1;
+  border-color: var(--brand);
+  color: var(--text-primary);
+}
+
+.pipe-box .pipe-name {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.pipe-single {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  background: var(--page);
+  opacity: 0.45;
+  transition: opacity 0.25s, border-color 0.25s;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.pipe-single.lit {
+  opacity: 1;
+  border-color: var(--brand);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Chart Elements */
+.legend {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.swatch.round {
+  border-radius: 50%;
+}
+
+.axis-label {
+  fill: var(--text-muted);
+  font-size: 10px;
+  font-family: inherit;
+}
+
+.gridline-el {
+  stroke: var(--gridline);
+  stroke-width: 1;
+}
+
+.baseline-el {
+  stroke: var(--baseline);
+  stroke-width: 1;
+}
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  max-width: 260px;
+  line-height: 1.5;
+  z-index: 20;
+}
+
+.tooltip .t-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: var(--text-primary);
+}
+
+.tooltip .t-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+
+.summary-list {
+  margin-top: 12px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.summary-list div {
+  padding: 3px 0;
+}
+
+.summary-list b {
+  color: var(--text-primary);
+}
+
+.loading {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 30px 0;
+  justify-content: center;
+}
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--gridline);
+  border-top-color: var(--brand);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.donut-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.donut-center {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.donut-center-label {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}

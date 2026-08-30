@@ -1,0 +1,21 @@
+{
+  "name": "@poramet-bit/graph-subagent",
+  "version": "0.1.0",
+  "description": "Graph Engine Sub-Agent: transforms raw tabular data into validated chart schema JSON specs based on user intent.",
+  "type": "module",
+  "main": "./src/index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "cli": "node src/cli.js",
+    "test": "node test/subagent.test.js"
+  },
+  "keywords": [
+    "subagent",
+    "graph-engine",
+    "data-visualization",
+    "mcp",
+    "dual-output"
+  ],
+  "author": "Prompt Paladins",
+  "license": "MIT"
+}

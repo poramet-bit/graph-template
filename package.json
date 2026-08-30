@@ -1,0 +1,28 @@
+{
+  "name": "graph-template",
+  "version": "1.0.0",
+  "description": "Smart Intelligence Budget Analysis & Sub-Agent Graph Engine (Prompt Paladins)",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "modules/ai_layer"
+  ],
+  "scripts": {
+    "dev": "npm --prefix packages/web-app run dev",
+    "build": "npm --prefix packages/dashboard-widgets run build && npm --prefix packages/web-app run build",
+    "preview": "npm --prefix packages/web-app run preview",
+    "subagent:start": "node modules/ai_layer/src/server.js",
+    "subagent:cli": "node modules/ai_layer/src/cli.js",
+    "subagent:test": "node modules/ai_layer/test/subagent.test.js"
+  },
+  "keywords": [
+    "subagent",
+    "graph-engine",
+    "dual-output",
+    "react",
+    "component-based",
+    "mcp"
+  ],
+  "author": "Prompt Paladins",
+  "license": "MIT"
+}
